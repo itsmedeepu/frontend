@@ -1,0 +1,7 @@
+{
+  "name": "AgriDirect - Farmer-to-Consumer Marketplace",
+  "description": "A comprehensive direct-to-consumer agricultural platform where farmers can list products, manage orders, and view transactions, while customers browse fresh produce and track their purchases.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
