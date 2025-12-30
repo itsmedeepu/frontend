@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 4000,
         host: '0.0.0.0',
+        proxy: {
+          '/api': {
+            target: 'https://backend-l93k.onrender.com',
+            changeOrigin: true,
+            secure: false,
+          }
+        }
       },
       plugins: [react()],
       define: {

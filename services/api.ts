@@ -2,7 +2,7 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 
 import { Product, User } from '../types';
 import { loadingEmitter } from '../context/LoadingContext';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || ''; // Relative path for proxy
 const API_URL = `${BACKEND_URL}/api/v1/agridirect`;
 
 // Helper to get tokens
