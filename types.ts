@@ -33,7 +33,16 @@ export interface Product {
   category: string;
   image: string;
   stock: number;
-  farmerRating?: number;
+  farmer?: {
+    _id: string;
+    name: string;
+    farmDetails?: {
+      farmName: string;
+    };
+    averageRating?: number;
+    ratingCount?: number;
+  };
+  farmerRating?: number; // kept for compatibility if needed, but should be deprecated
 }
 
 export interface OrderItem {

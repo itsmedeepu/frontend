@@ -82,18 +82,32 @@ const ProductDetails: React.FC = () => {
                 <ShieldCheck className="h-4 w-4" /> Farmer Certified
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 mb-2 transition-colors">{product.name}</h1>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex items-center text-yellow-400">
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4" />
-                  <span className="ml-2 text-sm text-slate-500">(12 reviews)</span>
+              {product.farmer?.averageRating !== undefined && product.farmer.averageRating > 0 && (
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        className={`h-4 w-4 ${
+                          i < Math.round(product.farmer?.averageRating || 0) 
+                            ? 'fill-current' 
+                            : 'text-slate-300 dark:text-slate-600'
+                        }`} 
+                      />
+                    ))}
+                    <span className="ml-2 text-sm text-slate-500">
+                      ({product.farmer?.ratingCount || 0} reviews)
+                    </span>
+                  </div>
+                  <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 transition-colors" />
+                  <div className="text-sm font-medium text-emerald-600 dark:text-emerald-500 transition-colors">From {product.farmerName}</div>
                 </div>
-                <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 transition-colors" />
-                <div className="text-sm font-medium text-emerald-600 dark:text-emerald-500 transition-colors">From {product.farmerName}</div>
-              </div>
+              )}
+              {(!product.farmer?.averageRating || product.farmer.averageRating === 0) && (
+                 <div className="flex items-center gap-4 mb-4">
+                    <div className="text-sm font-medium text-emerald-600 dark:text-emerald-500 transition-colors">From {product.farmerName}</div>
+                 </div>
+              )}
               <div className="text-4xl font-bold text-slate-900 dark:text-slate-100 transition-colors">
                 ₹{product.price.toFixed(2)} <span className="text-lg font-medium text-slate-400 dark:text-slate-500">per {product.unit}</span>
               </div>

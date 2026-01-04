@@ -171,11 +171,12 @@ const Home: React.FC<HomeProps> = ({ user }) => {
                   <div className="flex items-center justify-between mt-auto">
                     <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400">
                       <Leaf className="h-3.5 w-3.5 text-emerald-500" />
-                      {product.farmerName || 'Local Farmer'}
-                      {product.farmerRating !== undefined && product.farmerRating > 0 && (
+                      {product.farmer?.farmDetails?.farmName || product.farmer?.name || 'Local Farmer'}
+                      {product.farmer?.averageRating !== undefined && product.farmer.averageRating > 0 && (
                         <div className="flex items-center gap-0.5 ml-1 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900/50">
                           <span className="text-amber-500 text-[10px]">★</span>
-                          <span className="text-10px font-bold text-amber-600 dark:text-amber-500">{product.farmerRating.toFixed(1)}</span>
+                          <span className="text-10px font-bold text-amber-600 dark:text-amber-500">{product.farmer.averageRating.toFixed(1)}</span>
+                          <span className="text-[9px] text-slate-400">({product.farmer.ratingCount || 0})</span>
                         </div>
                       )}
                     </div>
