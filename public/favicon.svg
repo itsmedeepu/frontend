@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Circular background -->
+  <circle cx="256" cy="256" r="256" fill="#ecfdf5"/>
+  
+  <!-- Sprout/Leaf Icon -->
+  <path d="M256 416c0-120 80-200 160-200 0 60-40 100-80 120-20 10-60 20-80 80z" fill="#15803d"/>
+  <path d="M256 416c0-140-100-220-160-200 40 10 90 40 100 100 5 30 20 80 60 100z" fill="#22c55e"/>
+</svg>
