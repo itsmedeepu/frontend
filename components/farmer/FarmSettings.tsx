@@ -87,8 +87,12 @@ const FarmSettings: React.FC<FarmSettingsProps> = ({
                   className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-slate-100 font-medium transition-all" 
                 />
               </div>
-           Update Business & Personal Info
-         </button>
+            <button 
+              onClick={onUpdateProfile}
+              className="mt-6 px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-md active:scale-95 w-full md:w-auto"
+            >
+              Update Business & Personal Info
+            </button>
          
           <div className="w-full h-px bg-slate-200 dark:bg-slate-800 my-8"></div>
 
