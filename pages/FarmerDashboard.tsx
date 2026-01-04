@@ -950,7 +950,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         </div>
       )}
       
-      <ChatWidget userId={user.id} role="farmer" />
+      <ChatWidget userId={user.id || (user as any)._id} role="farmer" />
     </div>
   );
 };

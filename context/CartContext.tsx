@@ -36,23 +36,23 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
     }
 
-    setItems(prev => {
-        const existing = prev.find(item => item.id === product.id);
-        if (existing) {
-            if (existing.quantity >= product.stock) {
-                showToast(`Cannot add more. Max stock available: ${product.stock}`, 'error');
-                return prev;
-            }
-            showToast(`${product.name} added to cart`, 'success'); 
-            return prev.map(item => 
-                item.id === product.id 
-                  ? { ...item, quantity: item.quantity + 1 } 
-                  : item
-              );
+    const existing = items.find(item => item.id === product.id);
+
+    if (existing) {
+        if (existing.quantity >= product.stock) {
+            showToast(`Cannot add more. Max stock available: ${product.stock}`, 'error');
+            return;
         }
+        showToast(`${product.name} added to cart`, 'success'); 
+        setItems(prev => prev.map(item => 
+            item.id === product.id 
+              ? { ...item, quantity: item.quantity + 1 } 
+              : item
+          ));
+    } else {
         showToast(`${product.name} added to cart`, 'success');
-        return [...prev, { ...product, quantity: 1 }];
-    });
+        setItems(prev => [...prev, { ...product, quantity: 1 }]);
+    }
   };
 
   const removeFromCart = (productId: string) => {

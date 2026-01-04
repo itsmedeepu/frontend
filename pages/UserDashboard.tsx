@@ -527,7 +527,7 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
         ) : renderContent()}
       </main>
       
-      <ChatWidget userId={user.id} role="customer" />
+      <ChatWidget userId={user.id || (user as any)._id} role="customer" />
     </div>
   );
 };

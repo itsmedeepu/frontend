@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Package, User as UserIcon, XCircle, CheckCircle2, Star } from 'lucide-react';
 import { Order } from '../../types';
+import { getImageUrl } from '../../utils/imageHelper';
 
 interface OrderManagementProps {
   orders: Order[];
@@ -15,6 +16,12 @@ const OrderManagement: React.FC<OrderManagementProps> = ({
   onOpenDeliveryModal, 
   onOpenCancelModal 
 }) => {
+  const getPrice = (item: any) => {
+    if (typeof item.price === 'number') return item.price;
+    if (item.product && typeof item.product.price === 'number') return item.product.price;
+    return 0;
+  };
+
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('All');
   const [orderSearch, setOrderSearch] = useState('');
 
@@ -100,6 +107,34 @@ const OrderManagement: React.FC<OrderManagementProps> = ({
                        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">₹{(order.totalAmount || 0).toFixed(2)}</div>
                        <div className="text-xs text-slate-400 mt-1">{order.items?.length || 0} items</div>
                     </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">Ordered Items</div>
+                  <div className="space-y-3">
+                    {order.items?.map((item: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-3">
+                         <div className="h-10 w-10 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                            {item.product?.image ? (
+                               <img src={getImageUrl(item.product.image)} alt={item.product.name} className="h-full w-full object-cover" />
+                            ) : (
+                               <div className="h-full w-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                  <Package className="h-4 w-4 text-slate-400" />
+                               </div>
+                            )}
+                         </div>
+                         <div className="flex-1">
+                            <div className="text-sm font-bold text-slate-900 dark:text-slate-100">{item.product?.name || 'Unknown Product'}</div>
+                            <div className="text-xs text-slate-500">
+                               {item.quantity} {item.product?.unit || 'units'} × ₹{getPrice(item).toFixed(2)}
+                             </div>
+                          </div>
+                          <div className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                             ₹{(item.quantity * getPrice(item)).toFixed(2)}
+                          </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {(order.status === 'Shipped' || order.status === 'Delivered') && order.delivery && (

@@ -83,9 +83,18 @@ const PriceComparisonModal: React.FC<PriceComparisonModalProps> = ({
                   <h3 className="font-bold text-slate-900 truncate">{product.name}</h3>
                   <div className="flex items-center gap-1 mt-1">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className="h-3 w-3 fill-amber-400 text-amber-400" />
+                      <Star 
+                        key={s} 
+                        className={`h-3 w-3 ${
+                          s <= Math.round(product.farmer?.averageRating || 0) 
+                            ? 'fill-amber-400 text-amber-400' 
+                            : 'text-slate-300'
+                        }`} 
+                      />
                     ))}
-                    <span className="text-[10px] text-slate-400 ml-1">(4.8)</span>
+                    <span className="text-[10px] text-slate-400 ml-1">
+                      ({product.farmer?.averageRating ? product.farmer.averageRating.toFixed(1) : 'New'})
+                    </span>
                   </div>
                 </div>
 
