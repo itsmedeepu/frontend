@@ -25,32 +25,58 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { showToast } = useToast();
 
   const addToCart = (product: Product) => {
+    if (!product || !product.id) {
+        console.error('CartContext: Attempted to add invalid product', product);
+        showToast('Error: Invalid product data', 'error');
+        return;
+    }
+
+    if (product.stock <= 0) {
+        showToast('Product is out of stock', 'error');
+        return;
+    }
+
     setItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + 1 } 
-            : item
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
+        const existing = prev.find(item => item.id === product.id);
+        if (existing) {
+            if (existing.quantity >= product.stock) {
+                showToast(`Cannot add more. Max stock available: ${product.stock}`, 'error');
+                return prev;
+            }
+            showToast(`${product.name} added to cart`, 'success'); 
+            return prev.map(item => 
+                item.id === product.id 
+                  ? { ...item, quantity: item.quantity + 1 } 
+                  : item
+              );
+        }
+        showToast(`${product.name} added to cart`, 'success');
+        return [...prev, { ...product, quantity: 1 }];
     });
-    showToast(`${product.name} added to cart`, 'success');
   };
 
   const removeFromCart = (productId: string) => {
+    console.log('CartContext: Removing', productId);
     setItems(prev => prev.filter(item => item.id !== productId));
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
+    console.log('CartContext: Updating quantity', { productId, quantity });
     if (quantity < 1) {
       removeFromCart(productId);
       return;
     }
-    setItems(prev => prev.map(item => 
-      item.id === productId ? { ...item, quantity } : item
-    ));
+    
+    setItems(prev => prev.map(item => {
+        if (item.id === productId) {
+             if (quantity > item.stock) {
+                 showToast(`Only ${item.stock} items available`, 'error');
+                 return { ...item, quantity: item.stock };
+             }
+             return { ...item, quantity: Number(quantity) };
+        }
+        return item;
+    }));
   };
 
   const clearCart = () => {

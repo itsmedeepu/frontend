@@ -47,13 +47,13 @@ const CartModal = () => {
     <div className="fixed inset-0 z-50 overflow-hidden">
       <div className="absolute inset-0 bg-black bg-opacity-50 transition-opacity" onClick={toggleCart} />
       
-      <div className="fixed inset-y-0 right-0 max-w-md w-full bg-white shadow-xl flex flex-col transform transition-transform duration-300 ease-in-out">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+      <div className="fixed inset-y-0 right-0 max-w-md w-full bg-white dark:bg-slate-900 shadow-xl flex flex-col transform transition-transform duration-300 ease-in-out">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-slate-800">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <ShoppingBag className="h-6 w-6 text-emerald-600" />
             Your Cart
           </h2>
-          <button onClick={toggleCart} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={toggleCart} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -83,25 +83,37 @@ const CartModal = () => {
                     className="h-20 w-20 rounded-lg object-cover"
                   />
                   <div className="flex-1">
-                    <h3 className="font-bold text-slate-800">{item.name}</h3>
-                    <p className="text-sm text-slate-500">{item.unit}</p>
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100">{item.name}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{item.unit}</p>
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <button 
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600"
+                          onClick={() => {
+                            console.log('CartModal: Decrease clicked', item.id, item.quantity - 1);
+                            updateQuantity(item.id, item.quantity - 1);
+                          }}
+                          className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
                         >
                           <Minus className="h-4 w-4" />
                         </button>
-                        <span className="font-bold w-6 text-center">{item.quantity}</span>
+                        <span className="font-bold w-6 text-center text-slate-800 dark:text-slate-100">{item.quantity}</span>
                         <button 
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600"
+                          onClick={() => {
+                            if (item.quantity >= item.stock) return;
+                            console.log('CartModal: Increase clicked', item.id, item.quantity + 1);
+                            updateQuantity(item.id, item.quantity + 1);
+                          }}
+                          disabled={item.quantity >= item.stock}
+                          className={`p-1 rounded-full ${
+                             item.quantity >= item.stock 
+                             ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed' 
+                             : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                          }`}
                         >
                           <Plus className="h-4 w-4" />
                         </button>
                       </div>
-                      <span className="font-bold text-emerald-600">₹{item.price * item.quantity}</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-500">₹{item.price * item.quantity}</span>
                     </div>
                   </div>
                   <button 
@@ -117,18 +129,18 @@ const CartModal = () => {
         </div>
 
         {items.length > 0 && (
-          <div className="p-6 border-t border-gray-100 bg-slate-50 space-y-4">
+          <div className="p-6 border-t border-gray-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 space-y-4">
             {/* Payment Method Selection */}
             <div>
-              <h3 className="text-sm font-bold text-slate-700 mb-3">Payment Method</h3>
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Payment Method</h3>
               <div className="space-y-2">
                 {paymentOptions.map((option) => (
                   <label 
                     key={option.id}
                     className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                       paymentMethod === option.id 
-                        ? 'border-emerald-500 bg-emerald-50' 
-                        : 'border-slate-200 bg-white hover:border-emerald-300'
+                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' 
+                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-emerald-300'
                     }`}
                   >
                     <input
@@ -139,9 +151,9 @@ const CartModal = () => {
                       onChange={(e) => setPaymentMethod(e.target.value as any)}
                       className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                     />
-                    <option.icon className={`h-5 w-5 ${paymentMethod === option.id ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <option.icon className={`h-5 w-5 ${paymentMethod === option.id ? 'text-emerald-600 dark:text-emerald-500' : 'text-slate-400 dark:text-slate-500'}`} />
                     <div className="flex-1">
-                      <div className={`font-bold text-sm ${paymentMethod === option.id ? 'text-emerald-700' : 'text-slate-800'}`}>
+                      <div className={`font-bold text-sm ${paymentMethod === option.id ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-200'}`}>
                         {option.label}
                       </div>
                       <div className="text-xs text-slate-500">{option.description}</div>
@@ -151,9 +163,9 @@ const CartModal = () => {
               </div>
             </div>
 
-            <div className="flex justify-between mb-4 pt-2 border-t border-slate-200">
-              <span className="text-slate-600 font-medium">Total</span>
-              <span className="text-2xl font-bold text-emerald-600">₹{cartTotal}</span>
+            <div className="flex justify-between mb-4 pt-2 border-t border-slate-200 dark:border-slate-800">
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Total</span>
+              <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">₹{cartTotal}</span>
             </div>
             <button
               onClick={handleCheckout}
