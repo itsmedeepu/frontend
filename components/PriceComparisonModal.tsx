@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, ShoppingCart, Leaf, Star, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
+import { getImageUrl } from '../utils/imageHelper';
 
 interface PriceComparisonModalProps {
   isOpen: boolean;
@@ -71,7 +72,7 @@ const PriceComparisonModal: React.FC<PriceComparisonModalProps> = ({
                 
                 <div className="h-20 w-20 rounded-xl overflow-hidden flex-shrink-0 shadow-sm">
                   <img 
-                    src={product.image} 
+                    src={getImageUrl(product.image)} 
                     alt={product.name} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { getImageUrl } from '../utils/imageHelper';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ShoppingCart, ShieldCheck, Truck, RefreshCw, Star } from 'lucide-react';
 import { Product } from '../types';
@@ -67,7 +68,7 @@ const ProductDetails: React.FC = () => {
           {/* Image Gallery */}
           <div className="space-y-4">
             <div className="aspect-square rounded-2xl overflow-hidden shadow-inner">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              <img src={getImageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" />
             </div>
             <div className="grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map(i => (
@@ -149,15 +150,23 @@ const ProductDetails: React.FC = () => {
                     +
                   </button>
                 </div>
-                <button 
-                  onClick={handleOrder}
-                  className="flex-grow flex items-center justify-center gap-2 bg-emerald-600 text-white h-14 rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all"
-                >
-                  <ShoppingCart className="h-5 w-5" /> Buy Now
-                </button>
+                <div className="flex-grow">
+                   <button 
+                    onClick={handleOrder}
+                    disabled={!product.stock || product.stock < 1}
+                    className={`w-full flex items-center justify-center gap-2 h-14 rounded-xl font-bold shadow-lg transition-all ${
+                       !product.stock || product.stock < 1 
+                       ? 'bg-slate-300 text-slate-500 cursor-not-allowed dark:bg-slate-800 dark:text-slate-600 shadow-none' 
+                       : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20'
+                    }`}
+                  >
+                    <ShoppingCart className="h-5 w-5" /> 
+                    {!product.stock || product.stock < 1 ? 'Out of Stock' : 'Buy Now'}
+                  </button>
+                </div>
               </div>
-              <p className="text-center text-sm text-slate-400 font-medium">
-                {product.stock} units currently in stock at the farm
+              <p className={`text-center text-sm font-bold ${(!product.stock || product.stock < 5) ? 'text-orange-500' : 'text-emerald-600'}`}>
+                {product.stock ? `${product.stock} units available` : 'Currently out of stock'}
               </p>
             </div>
           </div>

@@ -224,9 +224,9 @@ export const api = {
     }
   },
 
-  updateOrderStatus: async (id: string, status: string) => {
+  updateOrderStatus: async (id: string, status: string, deliveryDetails?: any, cancellationReason?: string) => {
     try {
-      const response = await apiClient.patch(`/order/${id}/status`, { status });
+      const response = await apiClient.patch(`/order/${id}/status`, { status, deliveryDetails, cancellationReason });
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to update order status');
@@ -312,6 +312,51 @@ export const api = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to get all reviews');
+    }
+  },
+
+  getChatHistory: async (orderId: string) => {
+    try {
+      const response = await apiClient.get(`/chat/history/${orderId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to get chat history');
+    }
+  },
+
+  getActiveConversations: async () => {
+    try {
+      const response = await apiClient.get('/chat/conversations');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to get active conversations');
+    }
+  },
+
+  forgotPassword: async (email: string) => {
+    try {
+      const response = await apiClient.post('/user/forgotpassword', { email });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to send reset link');
+    }
+  },
+
+  resetPasswordWithToken: async (token: string, password: string) => {
+    try {
+      const response = await apiClient.post(`/user/resetpassword/${token}`, { password });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to reset password');
+    }
+  },
+
+  changePassword: async (passwordData: any) => {
+    try {
+      const response = await apiClient.post('/user/resetpassword', passwordData);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to change password');
     }
   },
 };

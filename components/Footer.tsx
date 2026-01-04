@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -16,16 +17,15 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">How it Works</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Sustainability</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Contact</a></li>
+              <li><Link to="/about" className="hover:text-emerald-400 transition-colors">About Us</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-emerald-400 transition-colors">How it Works</Link></li>
+              <li><Link to="/sustainability" className="hover:text-emerald-400 transition-colors">Sustainability</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-white font-semibold mb-4">For Farmers</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="hover:text-emerald-400 transition-colors">Become a Seller</a></li>
+              <li><Link to="/register" className="hover:text-emerald-400 transition-colors">Become a Seller</Link></li>
               <li><a href="#" className="hover:text-emerald-400 transition-colors">Pricing Policies</a></li>
               <li><a href="#" className="hover:text-emerald-400 transition-colors">Logistics Support</a></li>
             </ul>
@@ -33,7 +33,7 @@ const Footer: React.FC = () => {
         </div>
         <div className="mt-12 pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
           <p>© {new Date().getFullYear()} AgriDirect Platform. Supporting local growth.</p>
-          <p className="mt-2 text-slate-600">Designed by Deepak S</p>
+          <p className="mt-2 text-slate-600">Designed by Deepak S and Team• v{import.meta.env.APP_VERSION || '0.0.0'}</p>
         </div>
       </div>
     </footer>

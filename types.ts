@@ -36,19 +36,40 @@ export interface OrderItem {
   unit: string;
 }
 
-export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export interface Delivery {
+  _id: string;
+  order: string;
+  carrierName: string;
+  trackingId?: string;
+  phone?: string;
+  status: 'Pending' | 'Shipped' | 'Delivered';
+  shippedDate?: string;
+  deliveredDate?: string;
+  address?: string;
+  customerContact?: {
+    name?: string;
+    phone?: string;
+    email?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type OrderStatus = 'Pending' | 'Accepted' | 'Rejected' | 'Shipped' | 'Delivered' | 'Cancelled';
 
 export interface Order {
+  _id: string; // Add _id for MongoDB compatibility
   id: string;
   customerId: string;
   customerName: string;
   farmerId: string;
-  items: OrderItem[];
+  items: any[]; // Relaxed for now as we use populate
   total: number;
-  totalAmount?: number; // Add this since it's used
+  totalAmount?: number;
   status: OrderStatus;
   date: string;
-  createdAt?: string; // Add this since it's used
+  createdAt: string;
+  delivery?: Delivery;
   review?: {
     rating: number;
     comment: string;
@@ -58,6 +79,7 @@ export interface Order {
     name: string;
     email: string;
     phone?: string;
+    address?: string;
   };
   farmer?: {
     _id: string;

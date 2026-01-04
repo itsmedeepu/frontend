@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getImageUrl } from '../utils/imageHelper';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   History, 
@@ -12,14 +13,19 @@ import {
   MapPin,
   Phone,
   Search,
-  Filter
+  Filter,
+  Package,
+  Menu,
+  MessageCircle,
+  X
 } from 'lucide-react';
+import ChatWidget from '../components/ChatWidget';
 import { User, Order } from '../types';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import Loader from '../components/Loader';
-import ConfirmationModal from '../components/ConfirmationModal';
 import ReviewModal from '../components/ReviewModal';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 interface DashboardProps {
   user: User;
@@ -27,7 +33,7 @@ interface DashboardProps {
 }
 
 const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpdate }) => {
-  console.log('UserDashboard: Rendering for user with role:', initialUser.role);
+
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get('tab') as 'orders' | 'profile' | 'settings' | null;
   
@@ -43,9 +49,14 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
+  // Sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // Review modal state
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewOrder, setReviewOrder] = useState<{ id: string; farmerName: string; farmerId: string } | null>(null);
+
+
   
   // Profile Form
   const [profileForm, setProfileForm] = useState({
@@ -54,6 +65,36 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
     location: user.address || user.location || '',
     phone: user.phone || ''
   });
+
+  // Password Form
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmNewPassword: ''
+  });
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
+      showToast("New passwords do not match", 'error');
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      showToast("Password must be at least 6 characters", 'error');
+      return;
+    }
+
+    try {
+      await api.changePassword({
+        oldpassword: passwordForm.oldPassword,
+        newpassword: passwordForm.newPassword
+      });
+      showToast('Password updated successfully', 'success');
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
+    } catch (error: any) {
+      showToast(error.message || 'Failed to update password', 'error');
+    }
+  };
 
   const isDirty = 
     profileForm.name !== user.name ||
@@ -129,6 +170,8 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
       setOrderToCancel(null);
     }
   };
+
+
 
   const handleOpenReview = (order: any) => {
     const farmerName = order.farmer?.farmDetails?.farmName || order.farmer?.name || 'Farmer';
@@ -249,11 +292,7 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
                     {order.items.map((item: any, idx: number) => (
                       <div key={idx} className="flex items-center gap-4">
                         <img 
-                          src={
-                            item.product?.image 
-                              ? (item.product.image.startsWith('http') ? item.product.image : `${import.meta.env.VITE_BACKEND_URL}${item.product.image}`)
-                              : 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=100'
-                          } 
+                          src={getImageUrl(item.product?.image)} 
                           alt={item.product?.name || 'Product'}
                           className="h-12 w-12 rounded-lg object-cover bg-slate-100"
                         />
@@ -288,6 +327,55 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
                       <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">₹{order.totalAmount}</div>
                     </div>
                   </div>
+
+                  {/* Delivery Tracking Details */}
+                  {(order.status === 'Shipped' || order.status === 'Delivered') && order.delivery && (
+                    <div className="mt-6 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <span className="text-xs font-bold text-blue-800 dark:text-blue-400 uppercase tracking-wider">Live Delivery Tracking</span>
+                        </div>
+                        {order.delivery.shippedDate && (
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">Shipped: {new Date(order.delivery.shippedDate).toLocaleDateString()}</span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase">Delivery Partner Name</div>
+                          <div className="text-sm font-bold text-slate-800 dark:text-slate-200">{order.delivery.carrierName || 'Pending'}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase">Delivery Tracking ID</div>
+                          <div className="text-sm font-bold text-blue-600 dark:text-blue-400">{order.delivery.trackingId || 'Not available'}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase">Delivery Phone Number</div>
+                          <div className="text-sm font-bold text-slate-800 dark:text-slate-200">{order.delivery.phone || 'Not provided'}</div>
+                        </div>
+                      </div>
+                      {order.delivery.deliveredDate && (
+                        <div className="mt-3 pt-3 border-t border-blue-100/50 dark:border-blue-900/20 text-right">
+                          <span className="text-[10px] font-bold text-emerald-500 uppercase mr-2">Order Delivered On:</span>
+                          <span className="text-sm font-bold text-emerald-600">{new Date(order.delivery.deliveredDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Cancellation Reason */}
+                  {(order.status === 'Cancelled' || order.status === 'Rejected') && order.cancellationReason && (
+                    <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ShieldAlert className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        <span className="text-xs font-bold text-red-800 dark:text-red-400 uppercase tracking-wider">Cancellation Reason</span>
+                      </div>
+                      <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                        "{order.cancellationReason}"
+                      </p>
+                    </div>
+                  )}
+
                 </div>
 
                 {/* Actions Footer */}
@@ -302,33 +390,38 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
                     )}
                     
                     {order.status === 'Delivered' && (
-                       order.review ? (
-                         <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/50">
-                           <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">Your Rating:</span>
-                           <div className="flex gap-0.5">
-                             {[1, 2, 3, 4, 5].map((star) => (
-                               <Star
-                                 key={star}
-                                 className={`w-3.5 h-3.5 ${
-                                   star <= order.review.rating
-                                     ? 'fill-amber-400 text-amber-400'
-                                     : 'text-slate-300 dark:text-slate-600'
-                                 }`}
-                               />
-                             ))}
-                           </div>
-                         </div>
-                       ) : (
-                         <button 
-                           onClick={() => handleOpenReview(order)}
-                           className="flex items-center gap-2 px-6 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
-                         >
-                           <Star className="h-4 w-4" /> Rate Farm
-                         </button>
-                       )
+                       <div className="flex gap-2">
+                        {order.review ? (
+                          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/50">
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">Your Rating:</span>
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`w-3.5 h-3.5 ${
+                                    star <= order.review.rating
+                                      ? 'fill-amber-400 text-amber-400'
+                                      : 'text-slate-300 dark:text-slate-600'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => handleOpenReview(order)}
+                            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+                          >
+                            <Star className="h-4 w-4" /> Rate Farm
+                          </button>
+                        )}
+                       </div>
                     )}
 
-                    {order.status !== 'Pending' && order.status !== 'Delivered' && (
+                    {(order.status === 'Pending' || order.status === 'Accepted' || order.status === 'Shipped') && (
+                       <span className="text-xs font-medium text-slate-400 italic px-2">Track status</span>
+                    )}
+                    {order.status === 'Rejected' || order.status === 'Cancelled' && (
                        <span className="text-xs font-medium text-slate-400 italic px-2">No actions available</span>
                     )}
                 </div>
@@ -420,11 +513,53 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
                   <div className="flex items-center gap-4">
                     <ShieldAlert className="h-6 w-6 text-emerald-600" />
                     <div>
-                      <div className="font-bold text-slate-900 dark:text-slate-100">Secure Password Reset</div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400">Update your credentials to keep your account safe.</div>
+                      <div className="font-bold text-slate-900 dark:text-slate-100">Forgot Password?</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Receive a reset link via email.</div>
                     </div>
                   </div>
-                  <button onClick={handleResetPassword} className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-600 transition-all">Trigger Reset</button>
+                  <button onClick={async () => {
+                    try {
+                      await api.forgotPassword(user.email);
+                      showToast('Reset link sent to your email', 'success');
+                    } catch(e: any) { showToast(e.message, 'error'); }
+                  }} className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-600 transition-all">Send Link</button>
+               </div>
+
+               <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800">
+                  <h4 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-4">Change Password</h4>
+                  <form onSubmit={handleUpdatePassword} className="space-y-4 max-w-lg">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Current Password</label>
+                      <input 
+                        type="password" 
+                        required
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
+                        value={passwordForm.oldPassword}
+                        onChange={e => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">New Password</label>
+                      <input 
+                        type="password" 
+                        required
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
+                        value={passwordForm.newPassword}
+                        onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm New Password</label>
+                      <input 
+                        type="password" 
+                        required
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
+                        value={passwordForm.confirmNewPassword}
+                        onChange={e => setPasswordForm({...passwordForm, confirmNewPassword: e.target.value})}
+                      />
+                    </div>
+                    <button type="submit" className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all active:scale-95">Update Password</button>
+                  </form>
                </div>
             </div>
           </div>
@@ -435,7 +570,7 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row transition-colors relative">
       <ConfirmationModal
         isOpen={isCancelModalOpen}
         onClose={() => setIsCancelModalOpen(false)}
@@ -456,58 +591,108 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
         />
       )}
 
-      <div className="max-w-5xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
-          {/* Enhanced User Info Panel */}
-          <div className="w-full md:w-72 shrink-0 space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm text-center transition-colors">
-              <div className="relative inline-block mb-4">
-                <img src={`https://ui-avatars.com/api/?name=${user.name}&background=10b981&color=fff`} className="h-24 w-24 rounded-3xl mx-auto border-4 border-white dark:border-slate-800 shadow-xl" alt="" />
-                <div className="absolute -bottom-2 -right-2 bg-emerald-100 dark:bg-emerald-950/40 p-2 rounded-xl text-emerald-600 dark:text-emerald-400 shadow-md">
-                  <Star className="h-5 w-5 fill-current" />
-                </div>
-              </div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">{user.name}</h2>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mb-2 font-medium">{user.email}</p>
-              {user.phone && <p className="text-emerald-600 text-xs mb-6 font-bold flex items-center justify-center gap-1.5"><Phone className="h-3 w-3" /> {user.phone}</p>}
-              <div className="flex justify-center gap-4 border-t border-slate-100 dark:border-slate-800 pt-6">
-                <div>
-                  <div className="font-bold text-slate-900 dark:text-slate-100 text-lg">{orders.length}</div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-widest">Total Orders</div>
-                </div>
-              </div>
-            </div>
 
-            <nav className="bg-white dark:bg-slate-900 rounded-3xl p-3 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1 transition-colors">
-              {[
-                { id: 'profile', label: 'My Details', icon: UserIcon },
-                { id: 'orders', label: 'Order History', icon: History },
-                { id: 'settings', label: 'Account Safety', icon: ShieldAlert },
-              ].map((item) => (
-                <button 
-                  key={item.id} 
-                  onClick={() => setActiveTab(item.id as any)}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all ${activeTab === item.id ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-900/50' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'}`}
-                >
-                  <item.icon className="h-5 w-5" /> {item.label}
-                </button>
-              ))}
-            </nav>
+
+      {/* Mobile Header */}
+      <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-2">
+           <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded-lg text-emerald-600 dark:text-emerald-400">
+             <UserIcon className="h-5 w-5" />
+           </div>
+           <span className="font-bold text-slate-900 dark:text-slate-100">User Portal</span>
+        </div>
+        <button 
+          onClick={() => window.dispatchEvent(new Event('openChatWidget'))}
+          className="p-2 mr-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors relative"
+        >
+          <MessageCircle className="h-6 w-6" />
+          {/* <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span> */}
+        </button>
+        <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+          <Menu className="h-6 w-6" />
+        </button>
+      </div>
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 
+        flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 md:relative md:w-72 md:h-screen md:sticky md:top-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col items-center relative">
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          
+          <div className="relative inline-block mb-4 mt-2 md:mt-0">
+            <img src={`https://ui-avatars.com/api/?name=${user.name}&background=10b981&color=fff`} className="h-24 w-24 rounded-3xl mx-auto border-4 border-slate-50 dark:border-slate-800 shadow-xl" alt="" />
+            <div className="absolute -bottom-2 -right-2 bg-emerald-100 dark:bg-emerald-950/40 p-2 rounded-xl text-emerald-600 dark:text-emerald-400 shadow-md">
+              <Star className="h-5 w-5 fill-current" />
+            </div>
           </div>
-
-          <div className="flex-1 space-y-6">
-            <div className="flex justify-between items-center px-2">
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 capitalize tracking-tight">{activeTab.replace('_', ' ')}</h3>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight text-center">{user.name}</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mb-2 font-medium text-center">{user.email}</p>
+          {user.phone && <p className="text-emerald-600 text-xs mb-4 font-bold flex items-center justify-center gap-1.5"><Phone className="h-3 w-3" /> {user.phone}</p>}
+          
+          <div className="flex justify-center gap-4 w-full border-t border-slate-100 dark:border-slate-800 pt-6">
+            <div className="text-center">
+              <div className="font-bold text-slate-900 dark:text-slate-100 text-lg">{orders.length}</div>
+              <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-widest">Total Orders</div>
             </div>
-            {loading && activeTab === 'orders' ? (
-              <div className="py-20 text-center bg-white rounded-3xl border border-slate-200">
-                <Loader size="md" />
-                <p className="text-slate-500 mt-4 text-sm font-medium animate-pulse">Loading your orders...</p>
-              </div>
-            ) : renderContent()}
           </div>
         </div>
-      </div>
+
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {[
+            { id: 'profile', label: 'My Details', icon: UserIcon },
+            { id: 'orders', label: 'Order History', icon: History },
+            { id: 'settings', label: 'Account Safety', icon: ShieldAlert },
+          ].map((item) => (
+            <button 
+              key={item.id} 
+              onClick={() => {
+                setActiveTab(item.id as any);
+                setIsSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all ${
+                activeTab === item.id 
+                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100 dark:shadow-none translate-x-1' 
+                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 hover:translate-x-1'
+              }`}
+            >
+              <item.icon className="h-5 w-5" /> {item.label}
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-4 md:p-10 overflow-x-hidden">
+        <header className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 capitalize tracking-tight">{activeTab.replace('_', ' ')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Manage your account and view your activities.</p>
+        </header>
+        
+        {loading && activeTab === 'orders' ? (
+          <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+            <Loader size="md" />
+            <p className="text-slate-500 mt-4 text-sm font-medium animate-pulse">Loading your orders...</p>
+          </div>
+        ) : renderContent()}
+      </main>
+      
+      <ChatWidget userId={user.id} role="customer" />
     </div>
   );
 };

@@ -10,7 +10,7 @@ import { useToast } from './context/ToastContext';
 import Toast from './components/Toast';
 import Loader from './components/Loader';
 import TopLoader from './components/TopLoader';
-import { startTour } from './services/TourService';
+
 // Lazy load pages
 const Home = lazy(() => import('./pages/Home'));
 const Farms = lazy(() => import('./pages/Farms'));
@@ -19,6 +19,11 @@ const Register = lazy(() => import('./pages/Register'));
 const ProductDetails = lazy(() => import('./pages/ProductDetails'));
 const FarmerDashboard = lazy(() => import('./pages/FarmerDashboard'));
 const UserDashboard = lazy(() => import('./pages/UserDashboard'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const About = lazy(() => import('./pages/About'));
+const HowItWorks = lazy(() => import('./pages/HowItWorks'));
+const Sustainability = lazy(() => import('./pages/Sustainability'));
 
 // Component to handle loading state for Suspense
 const SuspenseLoader: React.FC = () => {
@@ -60,13 +65,13 @@ const AppContent: React.FC = () => {
     showToast(message, 'success');
 
     // Trigger Tour if first time
-    const hasSeenTour = localStorage.getItem('has_seen_tour');
-    if (!hasSeenTour) {
-      setTimeout(() => {
-        startTour();
-        localStorage.setItem('has_seen_tour', 'true');
-      }, 500); // Small delay to allow DOM to settle
-    }
+    // const hasSeenTour = localStorage.getItem('has_seen_tour');
+    // if (!hasSeenTour) {
+    //   setTimeout(() => {
+    //     // startTour();
+    //     localStorage.setItem('has_seen_tour', 'true');
+    //   }, 500); // Small delay to allow DOM to settle
+    // }
   };
 
   const handleLogout = () => {
@@ -107,6 +112,11 @@ const AppContent: React.FC = () => {
                 <Route path="/products/:id" element={<ProductDetails />} />
                 <Route path="/login" element={<Login onLogin={handleLogin} />} />
                 <Route path="/register" element={<Register onLogin={handleLogin} />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/sustainability" element={<Sustainability />} />
                 
                 {/* Protected Routes */}
                 <Route 
@@ -114,7 +124,7 @@ const AppContent: React.FC = () => {
                   element={
                     user ? (
                       (() => {
-                        console.log('App: Current User Role:', user.role);
+
                         const isFarmer = user.role?.toLowerCase() === 'farmer';
                         return isFarmer ? <FarmerDashboard user={user} onUserUpdate={refreshUser} /> : <UserDashboard user={user} onUserUpdate={refreshUser} />;
                       })()

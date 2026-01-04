@@ -106,7 +106,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <label htmlFor="remember" className="ml-2 block text-sm font-medium text-slate-600 dark:text-slate-400">Remember me</label>
               </div>
               <div className="text-sm">
-                <a href="#" className="font-bold text-emerald-600 dark:text-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">Forgot password?</a>
+                <Link to="/forgot-password" className="font-bold text-emerald-600 dark:text-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">Forgot password?</Link>
               </div>
             </div>
 

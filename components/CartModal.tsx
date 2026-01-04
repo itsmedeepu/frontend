@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Wallet, Banknote } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { getImageUrl } from '../utils/imageHelper';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';

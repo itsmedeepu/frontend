@@ -63,7 +63,7 @@ export const mockApi = {
   getUserDetails: async (id: string) => FARMS.find(f => f.id === id) || { id, name: 'John Doe', email: 'john@example.com', role: 'customer' as const },
   updateUserDetails: async (id: string, updates: Partial<User>) => {
     // In a real app, this updates the DB. Here we simulate success.
-    console.log(`Updating user ${id} with:`, updates);
+
     return { ...updates, id };
   },
   updateFarmDetails: async (id: string, updates: Partial<User>) => {

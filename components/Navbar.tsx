@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBasket, User as UserIcon, Power, Menu, Tractor, ShoppingBag, X, Sun, Moon, Bell } from 'lucide-react';
+import { ShoppingBasket, User as UserIcon, Power, Menu, Tractor, ShoppingBag, X, Sun, Moon, Bell, MessageCircle } from 'lucide-react';
 import { User } from '../types';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
@@ -13,7 +13,7 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
-  if (user) console.log('Navbar: Current User Role:', user.role);
+
   const navigate = useNavigate();
   const { toggleCart, items, isOpen } = useCart();
   const { theme, toggleTheme } = useTheme();
@@ -55,7 +55,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
             {(!user || user.role?.toLowerCase() !== 'farmer') && (
               <div className="hidden md:flex items-center gap-6">
                 <Link to="/" className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-500 font-medium transition-colors">Marketplace</Link>
-                <Link to="/farms" id="nav-farms" className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-500 font-medium transition-colors">Our Farms</Link>
+
               </div>
             )}
           </div>
@@ -98,13 +98,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                   {user.role === 'farmer' ? <Tractor className="h-4 w-4" /> : <UserIcon className="h-4 w-4" />}
                   <span className="hidden sm:inline">Hi, {user.name.split(' ')[0]}</span>
                 </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-500 transition-colors"
-                  title="Logout"
-                >
-                  <Power className="h-5 w-5" />
-                </button>
+
               </>
             ) : (
               <div className="flex items-center gap-2">
@@ -113,13 +107,46 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                 <Link to="/register" className="px-5 py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-shadow shadow-sm">Join Us</Link>
               </div>
             )}
+            
+            {user && (
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('openChatWidget'))}
+                className="p-2 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-500 transition-colors"
+                title="Messages"
+              >
+                <MessageCircle className="h-6 w-6" />
+              </button>
+            )}
+
             <button
               onClick={toggleTheme}
-              className="p-2 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-500 transition-colors ml-2"
+              className={`relative w-14 h-8 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 ${
+                theme === 'dark' ? 'bg-slate-700 focus:ring-offset-slate-900' : 'bg-slate-200'
+              } ml-2`}
               title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
             >
-              {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+              <div
+                className={`absolute top-1 left-1 bg-white rounded-full h-6 w-6 shadow-md transform transition-transform duration-300 flex items-center justify-center ${
+                  theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              >
+                {theme === 'dark' ? (
+                  <Moon className="h-3.5 w-3.5 text-slate-800" />
+                ) : (
+                  <Sun className="h-3.5 w-3.5 text-amber-500" />
+                )}
+              </div>
             </button>
+
+            {user && (
+              <button 
+                onClick={handleLogout}
+                className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-500 transition-colors ml-2"
+                title="Logout"
+              >
+                <Power className="h-5 w-5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

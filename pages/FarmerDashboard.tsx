@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { getImageUrl } from '../utils/imageHelper';
 import { useSearchParams } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -14,7 +15,6 @@ import {
   TrendingUp,
   Trash2,
   Edit2,
-  X,
   FileText,
   Search,
   Upload,
@@ -22,8 +22,12 @@ import {
   ChevronRight,
   ChevronLeft,
   Star,
-  User as UserIcon
+  User as UserIcon,
+  Menu,
+  X,
+  MessageCircle
 } from 'lucide-react';
+import ChatWidget from '../components/ChatWidget';
 import { User, Product, Order, Transaction } from '../types';
 import { api } from '../services/api';
 import Loader from '../components/Loader';
@@ -47,6 +51,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
   const [inventoryAvailability, setInventoryAvailability] = useState<'true' | 'false' | 'all'>('all');
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('All');
   const [orderSearch, setOrderSearch] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Product Modal State
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -74,6 +79,55 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
     email: user.email || '',
     phone: user.phone || ''
   });
+
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmNewPassword: ''
+  });
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
+      showToast("New passwords do not match", 'error');
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      showToast("Password must be at least 6 characters", 'error');
+      return;
+    }
+
+    try {
+      await api.changePassword({
+        oldpassword: passwordForm.oldPassword,
+        newpassword: passwordForm.newPassword
+      });
+      showToast('Password updated successfully', 'success');
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
+    } catch (error: any) {
+      showToast(error.message || 'Failed to update password', 'error');
+    }
+  };
+
+  // Delivery Modal State
+  const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
+  const [deliveryOrderId, setDeliveryOrderId] = useState<string | null>(null);
+  const [deliveryFormData, setDeliveryFormData] = useState({
+    carrierName: '',
+    trackingId: '',
+    phone: '',
+    customerName: '',
+    customerAddress: '',
+    customerPhone: '',
+    customerEmail: ''
+  });
+  const [modalStep, setModalStep] = useState(1);
+  // Cancellation Modal State
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+  const [cancellationReason, setCancellationReason] = useState('');
+  
+
 
   const fetchData = async () => {
     setLoading(true);
@@ -107,9 +161,64 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
     { label: 'Growth', value: '+12.5%', icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
   ];
 
-  const handleUpdateStatus = async (id: string, status: any) => {
-    await api.updateOrderStatus(id, status);
+  const handleUpdateStatus = async (id: string, status: any, deliveryDetails?: any) => {
+    await api.updateOrderStatus(id, status, deliveryDetails);
     fetchData();
+  };
+
+  const handleOpenCancelModal = (orderId: string) => {
+    setCancelOrderId(orderId);
+    setCancellationReason('');
+    setIsCancelModalOpen(true);
+  };
+
+  const handleConfirmCancellation = async () => {
+    if (!cancelOrderId || !cancellationReason.trim()) {
+      showToast('Please provide a reason for cancellation', 'error');
+      return;
+    }
+    try {
+      await api.updateOrderStatus(cancelOrderId, 'Cancelled', null, cancellationReason);
+      setIsCancelModalOpen(false);
+      showToast('Order cancelled successfully', 'success');
+      fetchData();
+    } catch (error: any) {
+      showToast(error.message || 'Failed to cancel order', 'error');
+    }
+  };
+
+  const handleOpenDeliveryModal = (order: any) => {
+    setDeliveryOrderId(order.id);
+    setDeliveryFormData({
+      carrierName: '',
+      trackingId: '',
+      phone: '',
+      customerName: order.user?.name || 'Customer',
+      customerAddress: order.user?.address || '',
+      customerPhone: order.user?.phone || '',
+      customerEmail: order.user?.email || ''
+    });
+    setModalStep(1);
+    setIsDeliveryModalOpen(true);
+  };
+
+  const handleConfirmShipping = async () => {
+    if (!deliveryOrderId) return;
+    try {
+      await handleUpdateStatus(deliveryOrderId, 'Shipped', {
+        carrierName: deliveryFormData.carrierName,
+        trackingId: deliveryFormData.trackingId,
+        phone: deliveryFormData.phone,
+        customerName: deliveryFormData.customerName,
+        customerAddress: deliveryFormData.customerAddress,
+        customerPhone: deliveryFormData.customerPhone,
+        customerEmail: deliveryFormData.customerEmail
+      });
+      setIsDeliveryModalOpen(false);
+      showToast('Order marked as shipped with delivery details', 'success');
+    } catch (error) {
+      showToast('Failed to update shipping details', 'error');
+    }
   };
 
   const handleDeleteProduct = async (id: string) => {
@@ -140,7 +249,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         price: product.price,
         unit: product.unit,
         category: product.category,
-        stock: product.stock
+        stock: product.stock || 0
       });
     } else {
       setEditingProduct(null);
@@ -189,6 +298,8 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
       showToast('Failed to save product', 'error');
     }
   };
+
+
 
   const validateBusinessProfile = () => {
     if (!farmSettings.name.trim()) return "Legal Farm Name is required";
@@ -333,7 +444,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
                   {products.slice(0, 5).map(p => (
                     <div key={p.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 transition-colors">
                       <div className="flex items-center gap-4">
-                        <img src={p.image} className="h-10 w-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700" />
+                        <img src={getImageUrl(p.image)} className="h-10 w-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700" />
                         <div>
                           <div className="font-bold text-sm text-slate-900 dark:text-slate-100">{p.name}</div>
                           <div className="text-xs text-slate-500 dark:text-slate-400">{p.category}</div>
@@ -413,7 +524,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
                     <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <img src={p.image} className="h-12 w-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700" />
+                          <img src={getImageUrl(p.image)} className="h-12 w-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700" />
                           <div className="font-bold text-slate-800 dark:text-slate-100">{p.name}</div>
                         </div>
                       </td>
@@ -529,13 +640,58 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
                             </div>
                          </div>
 
-                         {/* Order Total */}
-                         <div className="text-right">
-                            <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Order Value</div>
-                            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">₹{(order.totalAmount || 0).toFixed(2)}</div>
-                            <div className="text-xs text-slate-400 mt-1">{order.items?.length || 0} items</div>
-                         </div>
+                          {/* Order Total */}
+                          <div className="text-right">
+                             <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Order Value</div>
+                             <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">₹{(order.totalAmount || 0).toFixed(2)}</div>
+                             <div className="text-xs text-slate-400 mt-1">{order.items?.length || 0} items</div>
+                          </div>
                       </div>
+
+                      {/* Delivery Details Display for Farmer */}
+                      {(order.status === 'Shipped' || order.status === 'Delivered') && order.delivery && (
+                        <div className="mt-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                               <Package className="h-4 w-4 text-blue-600" />
+                               <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">Shipment Tracking Info</span>
+                            </div>
+                            {order.delivery.shippedDate && (
+                              <span className="text-[10px] text-slate-500 font-medium">Shipped: {new Date(order.delivery.shippedDate).toLocaleDateString()}</span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                             <div>
+                                <div className="text-[10px] font-bold text-slate-400 uppercase">Carrier Name</div>
+                                <div className="text-sm font-bold text-slate-800 dark:text-slate-200">{order.delivery.carrierName}</div>
+                             </div>
+                             <div>
+                                <div className="text-[10px] font-bold text-slate-400 uppercase">Tracking ID</div>
+                                <div className="text-sm font-bold text-blue-600">{order.delivery.trackingId}</div>
+                             </div>
+                             <div>
+                                <div className="text-[10px] font-bold text-slate-400 uppercase">Partner Contact</div>
+                                <div className="text-sm font-bold text-slate-800 dark:text-slate-200">{order.delivery.phone}</div>
+                             </div>
+                          </div>
+                          {(order.delivery.deliveredDate || order.delivery.customerContact) && (
+                            <div className="mt-3 pt-3 border-t border-blue-100/50 dark:border-blue-900/20 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                               {order.delivery.customerContact && (
+                                 <div>
+                                   <div className="text-[10px] font-bold text-slate-400 uppercase">Customer Contact</div>
+                                   <div className="text-xs text-slate-600 dark:text-slate-400">{order.delivery.customerContact.phone} | {order.delivery.customerContact.email}</div>
+                                 </div>
+                               )}
+                               {order.delivery.deliveredDate && (
+                                 <div className="text-right">
+                                   <div className="text-[10px] font-bold text-emerald-500 uppercase">Delivered On</div>
+                                   <div className="text-xs font-bold text-emerald-600">{new Date(order.delivery.deliveredDate).toLocaleDateString()}</div>
+                                 </div>
+                               )}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Review Section */}
                       {order.status === 'Delivered' && order.review && (
@@ -562,13 +718,16 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
                        )}
                     </div>
 
+
+
                     {/* Actions Footer */}
-                    {(order.status === 'Pending' || order.status === 'Accepted' || order.status === 'Shipped') && (
+                    {(order.status === 'Pending' || order.status === 'Accepted' || order.status === 'Shipped' || order.status === 'Delivered') && (
                       <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex gap-2 justify-end items-center flex-wrap">
+                        
                         {order.status === 'Pending' && (
                           <>
-                            <button onClick={() => handleUpdateStatus(order.id, 'Rejected')} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 rounded-xl text-sm font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm">
-                              <XCircle className="h-4 w-4" /> Reject
+                            <button onClick={() => handleOpenCancelModal(order.id)} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 rounded-xl text-sm font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm">
+                              <XCircle className="h-4 w-4" /> Cancel/Reject
                             </button>
                             <button onClick={() => handleUpdateStatus(order.id, 'Accepted')} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-100 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
                               <CheckCircle2 className="h-4 w-4" /> Accept Order
@@ -576,9 +735,14 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
                           </>
                         )}
                         {order.status === 'Accepted' && (
-                          <button onClick={() => handleUpdateStatus(order.id, 'Shipped')} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-md shadow-blue-100 hover:bg-blue-700 hover:shadow-lg transition-all active:scale-95">
-                             <Package className="h-4 w-4" /> Mark Shipped
-                          </button>
+                          <>
+                            <button onClick={() => handleOpenDeliveryModal(order)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-md shadow-blue-100 hover:bg-blue-700 hover:shadow-lg transition-all active:scale-95">
+                               <Package className="h-4 w-4" /> Mark Shipped
+                            </button>
+                            <button onClick={() => handleOpenCancelModal(order.id)} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 rounded-xl text-sm font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm">
+                                <XCircle className="h-4 w-4" /> Cancel
+                            </button>
+                           </>
                         )}
                         {order.status === 'Shipped' && (
                           <button onClick={() => handleUpdateStatus(order.id, 'Delivered')} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-100 hover:bg-emerald-700 hover:shadow-lg transition-all active:scale-95">
@@ -674,6 +838,45 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
                >
                  Update Personal Info
                </button>
+               
+               <div className="w-full h-px bg-slate-200 dark:bg-slate-800 my-8"></div>
+
+               <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Security</h3>
+               <div className="space-y-4 max-w-xl">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Current Password</label>
+                    <input 
+                      type="password" 
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
+                      value={passwordForm.oldPassword}
+                      onChange={e => setPasswordForm({...passwordForm, oldPassword: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">New Password</label>
+                     <input 
+                      type="password" 
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
+                      value={passwordForm.newPassword}
+                      onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm New Password</label>
+                     <input 
+                      type="password" 
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-slate-100 transition-all"
+                      value={passwordForm.confirmNewPassword}
+                      onChange={e => setPasswordForm({...passwordForm, confirmNewPassword: e.target.value})}
+                    />
+                  </div>
+                  <button 
+                  onClick={handleUpdatePassword} 
+                  className="px-6 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition-colors shadow-md active:scale-95"
+                 >
+                   Update Password
+                 </button>
+               </div>
             </div>
           </div>
         );
@@ -710,6 +913,139 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row transition-colors">
+      {/* Delivery Tracking Modal */}
+      {isDeliveryModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 transition-colors border dark:border-slate-800">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg text-blue-700 dark:text-blue-400">
+                  <Package className="h-5 w-5" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Delivery Details</h3>
+              </div>
+              <button onClick={() => setIsDeliveryModalOpen(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 dark:text-slate-500">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[70vh] custom-scrollbar">
+              {modalStep === 1 ? (
+                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                  <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/20">
+                    <p className="text-xs text-blue-800 dark:text-blue-400 font-bold uppercase mb-2">Step 1: Verify Customer Info</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Please confirm or update the customer's contact and shipping details below.</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Customer Name</label>
+                        <input 
+                          type="text"
+                          className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 font-medium"
+                          value={deliveryFormData.customerName}
+                          onChange={e => setDeliveryFormData({...deliveryFormData, customerName: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Customer Phone</label>
+                        <input 
+                          type="tel"
+                          className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 font-medium"
+                          value={deliveryFormData.customerPhone}
+                          onChange={e => setDeliveryFormData({...deliveryFormData, customerPhone: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Customer Email</label>
+                      <input 
+                        type="email"
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 font-medium"
+                        value={deliveryFormData.customerEmail}
+                        onChange={e => setDeliveryFormData({...deliveryFormData, customerEmail: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Shipping Address</label>
+                      <textarea 
+                        rows={3}
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 font-medium resize-none"
+                        placeholder="Enter full shipping address..."
+                        value={deliveryFormData.customerAddress}
+                        onChange={e => setDeliveryFormData({...deliveryFormData, customerAddress: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => setModalStep(2)}
+                    className="w-full py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                  >
+                    Next: Delivery Partner <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                  <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/20">
+                    <p className="text-xs text-emerald-800 dark:text-emerald-400 font-bold uppercase mb-2">Step 2: Shipment Details</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Enter the third-party delivery information for tracking.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Delivery Partner / Boy Name</label>
+                      <input 
+                        type="text"
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 font-medium placeholder-slate-400"
+                        placeholder="e.g. Blue Dart / Rahul Kumar"
+                        value={deliveryFormData.carrierName}
+                        onChange={e => setDeliveryFormData({...deliveryFormData, carrierName: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Tracking ID / Order Link</label>
+                      <input 
+                        type="text"
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 font-medium placeholder-slate-400"
+                        placeholder="e.g. AW123456789"
+                        value={deliveryFormData.trackingId}
+                        onChange={e => setDeliveryFormData({...deliveryFormData, trackingId: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Partner Contact Number</label>
+                      <input 
+                        type="tel"
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 font-medium placeholder-slate-400"
+                        placeholder="e.g. 9876543210"
+                        value={deliveryFormData.phone}
+                        onChange={e => setDeliveryFormData({...deliveryFormData, phone: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button 
+                      onClick={() => setModalStep(1)}
+                      className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                    >
+                      Back
+                    </button>
+                    <button 
+                      onClick={handleConfirmShipping}
+                      className="flex-[2] py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all active:scale-[0.98]"
+                    >
+                      Confirm Shipping
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Enhanced Product Modal */}
       {isProductModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -762,18 +1098,35 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Price (₹)</label>
-                  <input 
-                    type="number" step="0.01" required 
-                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-slate-100 font-medium transition-all"
-                    value={productFormData.price}
-                    onChange={e => setProductFormData({...productFormData, price: parseFloat(e.target.value)})}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Price per unit (₹)</label>
+                    <input 
+                      type="number" 
+                      required
+                      min="0"
+                      step="0.01"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold transition-all dark:text-slate-100"
+                      value={productFormData.price}
+                      onChange={e => setProductFormData({...productFormData, price: parseFloat(e.target.value)})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Available Stock</label>
+                    <input 
+                      type="number" 
+                      required
+                      min="0"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold transition-all dark:text-slate-100"
+                      value={productFormData.stock}
+                      onChange={e => setProductFormData({...productFormData, stock: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Unit</label>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Unit Type</label>
                   <select 
                     className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-slate-100 font-medium transition-all"
                     value={productFormData.unit}
@@ -830,9 +1183,49 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         </div>
       )}
 
+      {/* Mobile Header */}
+      <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-2">
+           <div className="bg-emerald-600 p-2 rounded-lg text-white">
+             <LayoutDashboard className="h-5 w-5" />
+           </div>
+           <span className="font-bold text-slate-900 dark:text-slate-100">Farmer Portal</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => window.dispatchEvent(new CustomEvent('openChatWidget'))}
+            className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </button>
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-full md:w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-screen sticky top-0 transition-colors">
-        <div className="p-8 border-b border-slate-50 dark:border-slate-800">
+      <aside className={`
+        fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 
+        flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 md:relative md:w-72 md:h-screen md:sticky md:top-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="p-8 border-b border-slate-50 dark:border-slate-800 relative">
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
           <div className="flex items-center justify-between mb-8">
             <div className="h-10 w-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-100 dark:shadow-none">
               <LayoutDashboard className="h-6 w-6" />
@@ -869,7 +1262,10 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
           ].map(item => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id as any)}
+              onClick={() => {
+                setActiveTab(item.id as any);
+                setIsSidebarOpen(false);
+              }}
               className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl font-bold text-sm transition-all ${
                 activeTab === item.id 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100 dark:shadow-none translate-x-1' 
@@ -906,6 +1302,49 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
           </div>
         ) : renderContent()}
       </main>
+      {/* Cancellation Modal */}
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+               <h3 className="text-xl font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                 <XCircle className="h-6 w-6" /> Cancel Order
+               </h3>
+               <button onClick={() => setIsCancelModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                 <X className="h-6 w-6" />
+               </button>
+             </div>
+             <div className="p-6">
+               <p className="text-slate-600 dark:text-slate-400 mb-4 text-sm">
+                 Please provide a reason for cancelling this order. This information will be visible to the customer.
+               </p>
+               <textarea
+                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-red-500 min-h-[100px] text-slate-900 dark:text-slate-100 placeholder-slate-400"
+                 placeholder="Reason for cancellation (e.g., Out of stock, Quality issue...)"
+                 value={cancellationReason}
+                 onChange={(e) => setCancellationReason(e.target.value)}
+               />
+             </div>
+             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+               <button 
+                 onClick={() => setIsCancelModalOpen(false)}
+                 className="px-5 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+               >
+                 Go Back
+               </button>
+               <button 
+                 onClick={handleConfirmCancellation}
+                 disabled={!cancellationReason.trim()}
+                 className="px-5 py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+               >
+                 Confirm Cancel
+               </button>
+             </div>
+          </div>
+        </div>
+      )}
+      
+      <ChatWidget userId={user.id} role="farmer" />
     </div>
   );
 };
