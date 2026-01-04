@@ -93,6 +93,7 @@ const FarmSettings: React.FC<FarmSettingsProps> = ({
             >
               Update Business & Personal Info
             </button>
+           </div>
          
           <div className="w-full h-px bg-slate-200 dark:bg-slate-800 my-8"></div>
 
