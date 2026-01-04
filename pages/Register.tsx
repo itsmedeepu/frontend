@@ -34,7 +34,6 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Password Validation
     const passwordError = validatePassword(formData.password);
     if (passwordError) {
       showToast(passwordError, 'error');
@@ -43,7 +42,6 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
 
     setLoading(true);
     try {
-      // 1. Register
       await api.register({
         name: formData.name,
         email: formData.email,
@@ -53,7 +51,6 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
         ...(role === 'farmer' && { farmName: formData.farmName })
       });
 
-      // 2. Automatically login after registration to get tokens
       const loggedInUser = await api.login(formData.email, formData.password);
       
       onLogin(loggedInUser, 'Registration Successful!');

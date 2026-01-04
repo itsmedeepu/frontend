@@ -24,11 +24,11 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, onSubmit, fa
     try {
       await onSubmit(rating, comment);
       onClose();
-      // Reset form
+      
       setRating(0);
       setComment('');
     } catch (error) {
-      // Error handled by parent
+      
     } finally {
       setSubmitting(false);
     }

@@ -13,14 +13,14 @@ interface ChatModalProps {
   orderId: string;
   currentUserId: string;
   receiverId: string;
-  senderName: string; // Name of current user
-  receiverName: string; // Name of other party
+  senderName: string; 
+  receiverName: string; 
 }
 
 interface Message {
   _id?: string;
-  authorId?: string; // from socket
-  senderId?: string | { _id: string }; // from db
+  authorId?: string; 
+  senderId?: string | { _id: string }; 
   message: string;
   timestamp?: string;
   time?: string;
@@ -48,10 +48,8 @@ const ChatModal: React.FC<ChatModalProps> = ({
 
   useEffect(() => {
     if (isOpen && orderId) {
-      // Join Room
       socket.emit("join_room", orderId);
 
-      // Fetch history
       const fetchHistory = async () => {
         try {
           const res = await api.getChatHistory(orderId);
@@ -62,7 +60,6 @@ const ChatModal: React.FC<ChatModalProps> = ({
       };
       fetchHistory();
 
-      // Listen for messages
       socket.on("receive_message", (data: Message) => {
         setMessageList((list) => [...list, data]);
       });
@@ -96,7 +93,6 @@ const ChatModal: React.FC<ChatModalProps> = ({
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl flex flex-col h-[600px] border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200">
         
-        {/* Header */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 rounded-t-2xl flex justify-between items-center">
           <div className="flex items-center gap-3">
              <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400">
@@ -114,11 +110,8 @@ const ChatModal: React.FC<ChatModalProps> = ({
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex-1 p-4 overflow-y-auto bg-slate-50 dark:bg-slate-950/50 space-y-4 custom-scrollbar">
           {messageList.map((msg, index) => {
-            // Determine if message is from current user
-            // Check both 'authorId' (socket) and 'senderId' (db populate or simple id)
             const senderId = typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId;
             const isMe = msg.authorId === currentUserId || senderId === currentUserId;
 
@@ -140,7 +133,6 @@ const ChatModal: React.FC<ChatModalProps> = ({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Footer */}
         <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-b-2xl">
            <form 
              onSubmit={(e) => { e.preventDefault(); sendMessage(); }}

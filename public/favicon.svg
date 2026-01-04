@@ -1,8 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Circular background -->
-  <circle cx="256" cy="256" r="256" fill="#ecfdf5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#34d399;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="15" />
+      <feOffset dx="5" dy="10" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
   
-  <!-- Sprout/Leaf Icon -->
-  <path d="M256 416c0-120 80-200 160-200 0 60-40 100-80 120-20 10-60 20-80 80z" fill="#15803d"/>
-  <path d="M256 416c0-140-100-220-160-200 40 10 90 40 100 100 5 30 20 80 60 100z" fill="#22c55e"/>
+  <rect width="512" height="512" rx="100" fill="white" />
+  
+  <g transform="translate(106, 106) scale(0.6)" filter="url(#dropShadow)">
+    <path fill="url(#leafGradient)" d="M224 480c-8.8 0-16-7.2-16-16V320C208 231.6 279.6 160 368 160c8.8 0 16 7.2 16 16s-7.2 16-16 16c-70.7 0-128 57.3-128 128v144c0 8.8-7.2 16-16 16zm80-256c-8.8 0-16-7.2-16-16 0-8.8 7.2-16 16-16 8.8 0 16 7.2 16 16 0 8.8-7.2 16-16 16zm-128 64c-8.8 0-16-7.2-16-16 0-35.3 28.7-64 64-64 8.8 0 16 7.2 16 16s-7.2 16-16 16c-17.7 0-32 14.3-32 32 0 8.8-7.2 16-16 16zM64 160c0 141.4 114.6 256 256 256 8.8 0 16 7.2 16 16s-7.2 16-16 16C161.5 448 32 318.5 32 160 32 71.6 103.6 0 192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16C121.3 32 64 89.3 64 160z" />
+  </g>
 </svg>

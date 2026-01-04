@@ -20,7 +20,6 @@ const PriceComparisonModal: React.FC<PriceComparisonModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // Sort products by price to highlight the cheapest one
   const sortedProducts = [...products].sort((a, b) => a.price - b.price);
   const bestPrice = sortedProducts[0].price;
 
@@ -33,7 +32,6 @@ const PriceComparisonModal: React.FC<PriceComparisonModalProps> = ({
       
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-          {/* Header */}
           <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
@@ -49,7 +47,6 @@ const PriceComparisonModal: React.FC<PriceComparisonModalProps> = ({
             </button>
           </div>
 
-          {/* Product List */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {sortedProducts.map((product, index) => (
               <div 
@@ -107,7 +104,6 @@ const PriceComparisonModal: React.FC<PriceComparisonModalProps> = ({
             ))}
           </div>
 
-          {/* Footer */}
           <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
             <p className="text-xs text-slate-400 font-medium">
               Prices are set directly by farmers. All produce is organic and fresh.

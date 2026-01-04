@@ -11,7 +11,6 @@ import Toast from './components/Toast';
 import Loader from './components/Loader';
 import TopLoader from './components/TopLoader';
 
-// Lazy load pages
 const Home = lazy(() => import('./pages/Home'));
 const Farms = lazy(() => import('./pages/Farms'));
 const Login = lazy(() => import('./pages/Login'));
@@ -25,7 +24,6 @@ const About = lazy(() => import('./pages/About'));
 const HowItWorks = lazy(() => import('./pages/HowItWorks'));
 const Sustainability = lazy(() => import('./pages/Sustainability'));
 
-// Component to handle loading state for Suspense
 const SuspenseLoader: React.FC = () => {
   const { startLoading, stopLoading } = useLoading();
   
@@ -46,7 +44,6 @@ const AppContent: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
-  // Load user from local storage on mount (simulating token persistence)
   useEffect(() => {
     const savedUser = localStorage.getItem('agri_user');
     if (savedUser) {
@@ -55,23 +52,10 @@ const AppContent: React.FC = () => {
     setLoading(false);
   }, []);
 
-
-// ... other imports
-
-// Inside AppContent
   const handleLogin = (userData: User, message: string = 'Login Successful!') => {
     setUser(userData);
     localStorage.setItem('agri_user', JSON.stringify(userData));
     showToast(message, 'success');
-
-    // Trigger Tour if first time
-    // const hasSeenTour = localStorage.getItem('has_seen_tour');
-    // if (!hasSeenTour) {
-    //   setTimeout(() => {
-    //     // startTour();
-    //     localStorage.setItem('has_seen_tour', 'true');
-    //   }, 500); // Small delay to allow DOM to settle
-    // }
   };
 
   const handleLogout = () => {
@@ -118,7 +102,6 @@ const AppContent: React.FC = () => {
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/sustainability" element={<Sustainability />} />
                 
-                {/* Protected Routes */}
                 <Route 
                   path="/dashboard/*" 
                   element={

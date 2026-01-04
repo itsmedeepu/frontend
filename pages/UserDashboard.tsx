@@ -23,7 +23,7 @@ import ChatWidget from '../components/ChatWidget';
 import UserOrders from '../components/user/UserOrders';
 import UserProfile from '../components/user/UserProfile';
 import SecuritySettings from '../components/user/SecuritySettings';
-import { User, Order } from '../types';
+import { User, Order, Address } from '../types';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import Loader from '../components/Loader';
@@ -48,28 +48,34 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
   
-  // Confirmation modal state
+
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
-  // Sidebar state
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Review modal state
+
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewOrder, setReviewOrder] = useState<{ id: string; farmerName: string; farmerId: string } | null>(null);
 
 
   
-  // Profile Form
+
+  const parseAddress = (addr: string | Address | undefined): Address => {
+    if (!addr) return { doorNo: '', street: '', city: '', state: '', zip: '' };
+    if (typeof addr === 'string') return { doorNo: '', street: addr, city: '', state: '', zip: '' };
+    return { doorNo: addr.doorNo || '', street: addr.street || '', city: addr.city || '', state: addr.state || '', zip: addr.zip || '' };
+  };
+
   const [profileForm, setProfileForm] = useState({
     name: user.name,
     email: user.email,
-    location: user.address || user.location || '',
+    address: parseAddress(user.address),
     phone: user.phone || ''
   });
 
-  // Password Form
+
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: '',
     newPassword: '',
@@ -103,13 +109,13 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
     profileForm.name !== user.name ||
     profileForm.email !== user.email ||
     profileForm.phone !== (user.phone || '') ||
-    profileForm.location !== (user.address || user.location || '');
+    JSON.stringify(profileForm.address) !== JSON.stringify(parseAddress(user.address));
 
   const validate = () => {
     if (!profileForm.name.trim()) return "Name cannot be empty";
     if (!profileForm.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) return "Please enter a valid email";
     if (!profileForm.phone.match(/^\d{10}$/)) return "Phone number must be 10 digits";
-    if (!profileForm.location.trim()) return "Address cannot be empty";
+    if (!profileForm.address.street.trim() || !profileForm.address.city.trim() || !profileForm.address.zip.trim()) return "Please complete your address (Street, City, Zip)";
     return null;
   };
 
@@ -143,7 +149,7 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
         name: profileForm.name,
         email: profileForm.email,
         phone: profileForm.phone,
-        address: profileForm.location
+        address: profileForm.address
       });
       setUser(res.user);
       localStorage.setItem('agri_user', JSON.stringify(res.user));
@@ -166,7 +172,7 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
     try {
       await api.cancelOrder(orderToCancel);
       showToast('Order cancelled successfully', 'success');
-      fetchOrders(); // Refresh orders
+      fetchOrders();
     } catch (error: any) {
       showToast(error.message || 'Failed to cancel order', 'error');
     } finally {
@@ -197,10 +203,10 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
         comment
       });
       showToast('Review submitted successfully!', 'success');
-      fetchOrders(statusFilter); // Refresh orders to show the new rating
+      fetchOrders(statusFilter);
     } catch (error: any) {
       showToast(error.message || 'Failed to submit review', 'error');
-      throw error; // Re-throw to let modal know it failed
+      throw error;
     }
   };
 
@@ -261,17 +267,66 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Primary Delivery Address</label>
-                <div className="relative group">
-                   <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-emerald-600" /> Primary Delivery Address
+                </label>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Door No / Flat</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 12B"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-900 dark:text-slate-100 transition-all text-sm"
+                      value={profileForm.address.doorNo}
+                      onChange={e => setProfileForm({...profileForm, address: {...profileForm.address, doorNo: e.target.value}})}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Pin Code</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 560001"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-900 dark:text-slate-100 transition-all text-sm"
+                      value={profileForm.address.zip}
+                      onChange={e => setProfileForm({...profileForm, address: {...profileForm.address, zip: e.target.value}})}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                   <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Street / Area</label>
                    <input 
-                    type="text" 
-                    placeholder="Enter full shipping address"
-                    className="w-full pl-10 pr-4 py-3.5 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-900 dark:text-slate-100 transition-all"
-                    value={profileForm.location}
-                    onChange={e => setProfileForm({...profileForm, location: e.target.value})}
-                  />
+                      type="text" 
+                      placeholder="e.g. MG Road, Indiranagar"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-900 dark:text-slate-100 transition-all text-sm"
+                      value={profileForm.address.street}
+                      onChange={e => setProfileForm({...profileForm, address: {...profileForm.address, street: e.target.value}})}
+                    />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">City</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Bangalore"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-900 dark:text-slate-100 transition-all text-sm"
+                      value={profileForm.address.city}
+                      onChange={e => setProfileForm({...profileForm, address: {...profileForm.address, city: e.target.value}})}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">State</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Karnataka"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-900 dark:text-slate-100 transition-all text-sm"
+                      value={profileForm.address.state}
+                      onChange={e => setProfileForm({...profileForm, address: {...profileForm.address, state: e.target.value}})}
+                    />
+                  </div>
                 </div>
               </div>
               {isDirty && (
@@ -373,7 +428,7 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
 
 
 
-      {/* Mobile Header */}
+
       <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-2">
            <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded-lg text-emerald-600 dark:text-emerald-400">
@@ -386,14 +441,14 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
           className="p-2 mr-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors relative"
         >
           <MessageCircle className="h-6 w-6" />
-          {/* <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full"></span> */}
+
         </button>
         <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
           <Menu className="h-6 w-6" />
         </button>
       </div>
 
-      {/* Sidebar Overlay */}
+
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm animate-in fade-in duration-200"
@@ -401,7 +456,7 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
         />
       )}
 
-      {/* Sidebar */}
+
       <aside className={`
         fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 
         flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 md:relative md:w-72 md:h-screen md:sticky md:top-0
@@ -457,7 +512,7 @@ const UserDashboard: React.FC<DashboardProps> = ({ user: initialUser, onUserUpda
         </nav>
       </aside>
 
-      {/* Main Content */}
+
       <main className="flex-1 p-4 md:p-10 overflow-x-hidden">
         <header className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 capitalize tracking-tight">{activeTab.replace('_', ' ')}</h1>

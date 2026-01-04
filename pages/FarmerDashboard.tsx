@@ -25,7 +25,8 @@ import {
   User as UserIcon,
   Menu,
   X,
-  MessageCircle
+  MessageCircle,
+  Bell
 } from 'lucide-react';
 import ChatWidget from '../components/ChatWidget';
 import StatsOverview from '../components/farmer/StatsOverview';
@@ -33,7 +34,7 @@ import RecentOrders from '../components/farmer/RecentOrders';
 import InventoryTable from '../components/farmer/InventoryTable';
 import OrderManagement from '../components/farmer/OrderManagement';
 import FarmSettings from '../components/farmer/FarmSettings';
-import { User, Product, Order, Transaction } from '../types';
+import { User, Product, Order, Transaction, Address } from '../types';
 import { api } from '../services/api';
 import Loader from '../components/Loader';
 import { useToast } from '../context/ToastContext';
@@ -58,7 +59,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
   const [orderSearch, setOrderSearch] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Product Modal State
+
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -72,7 +73,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
     stock: 0
   });
 
-  // Settings State (Moved to top-level to fix Error #310)
+
   const [farmSettings, setFarmSettings] = useState({
     name: user.farmName || '',
     loc: user.location || '',
@@ -114,7 +115,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
     }
   };
 
-  // Delivery Modal State
+
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [deliveryOrderId, setDeliveryOrderId] = useState<string | null>(null);
   const [deliveryFormData, setDeliveryFormData] = useState({
@@ -127,10 +128,16 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
     customerEmail: ''
   });
   const [modalStep, setModalStep] = useState(1);
-  // Cancellation Modal State
+
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
   const [cancellationReason, setCancellationReason] = useState('');
+  
+  const formatAddress = (addr: string | Address | undefined) => {
+    if (!addr) return '';
+    if (typeof addr === 'string') return addr;
+    return [addr.doorNo, addr.street, addr.city, addr.state, addr.zip].filter(Boolean).join(', ');
+  };
   
 
 
@@ -142,9 +149,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         api.getOrders(),
         api.getTransactions()
       ]);
-      // The backend already filters orders and transactions by the authenticated user/farmer.
-      // But we still filter products by farmerId just in case getProducts returns all (usually it does for public view).
-      // But we still filter products by farmerId just in case getProducts returns all (usually it does for public view).
+
       setProducts(prod.filter(p => p.farmerId === user.id));
       setOrders(ord);
       setTransactions(trans);
@@ -199,7 +204,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
       trackingId: '',
       phone: '',
       customerName: order.user?.name || 'Customer',
-      customerAddress: order.user?.address || '',
+      customerAddress: order.shippingAddress ? formatAddress(order.shippingAddress) : formatAddress(order.user?.address),
       customerPhone: order.user?.phone || '',
       customerEmail: order.user?.email || ''
     });
@@ -209,6 +214,16 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
 
   const handleConfirmShipping = async () => {
     if (!deliveryOrderId) return;
+    
+    if (!deliveryFormData.carrierName.trim()) {
+      showToast('Please enter the Delivery Partner Name', 'error');
+      return;
+    }
+    if (!deliveryFormData.trackingId.trim()) {
+      showToast('Please enter the Tracking ID', 'error');
+      return;
+    }
+
     try {
       await handleUpdateStatus(deliveryOrderId, 'Shipped', {
         carrierName: deliveryFormData.carrierName,
@@ -334,7 +349,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         description: farmSettings.desc 
       });
       
-      // Update local storage to reflect changes immediately on reload
+
       const currentUser = JSON.parse(localStorage.getItem('agri_user') || '{}');
       const updatedUser = { 
         ...currentUser, 
@@ -345,7 +360,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
       localStorage.setItem('agri_user', JSON.stringify(updatedUser));
       
       showToast('Business Profile Saved!', 'success');
-      // Update local user object context if needed, or just refetch
+
       fetchData();
       if (onUserUpdate) onUserUpdate(); 
     } catch (error) {
@@ -368,7 +383,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         phone: personalSettings.phone
       });
 
-      // Update local storage
+
       const currentUser = JSON.parse(localStorage.getItem('agri_user') || '{}');
       const updatedUser = { 
         ...currentUser, 
@@ -495,7 +510,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row transition-colors">
-      {/* Delivery Tracking Modal */}
+
       {isDeliveryModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 transition-colors border dark:border-slate-800">
@@ -628,7 +643,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         </div>
       )}
 
-      {/* Enhanced Product Modal */}
+
       {isProductModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 transition-colors border dark:border-slate-800">
@@ -655,7 +670,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
                 />
               </div>
 
-              {/* Image Upload Area */}
+
               <div className="space-y-3">
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Product Image</label>
                 <div className="flex items-center gap-5">
@@ -765,7 +780,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         </div>
       )}
 
-      {/* Mobile Header */}
+
       <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-2">
            <div className="bg-emerald-600 p-2 rounded-lg text-white">
@@ -786,7 +801,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         </div>
       </div>
 
-      {/* Sidebar Overlay */}
+
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm animate-in fade-in duration-200"
@@ -794,7 +809,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
         />
       )}
 
-      {/* Sidebar */}
+
       <aside className={`
         fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 
         flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 md:relative md:w-72 md:h-screen md:sticky md:top-0
@@ -838,7 +853,7 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
           {[
             { id: 'overview', label: 'Dashboard Summary', icon: LayoutDashboard },
             { id: 'products', label: 'Inventory Manager', icon: Package },
-            { id: 'orders', label: 'Incoming Requests', icon: ShoppingCart },
+            { id: 'orders', label: 'Orders', icon: ShoppingCart },
             { id: 'transactions', label: 'Financial Logs', icon: Wallet },
             { id: 'settings', label: 'Business Profile', icon: Settings },
           ].map(item => (
@@ -876,6 +891,15 @@ const FarmerDashboard: React.FC<DashboardProps> = ({ user, onUserUpdate }) => {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 capitalize">{activeTab.replace('_', ' ')}</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm">Welcome back to your farm control center.</p>
           </div>
+          <button 
+            onClick={() => setActiveTab('orders')}
+            className="p-3 bg-white dark:bg-slate-900 rounded-full text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shadow-sm border border-slate-200 dark:border-slate-800 transition-all relative"
+          >
+            <Bell className="h-6 w-6" />
+            {orders.some(o => o.status === 'Pending') && (
+              <span className="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full animate-pulse border border-white dark:border-slate-900" />
+            )}
+          </button>
         </header>
         {loading ? (
           <div className="py-20 text-center">

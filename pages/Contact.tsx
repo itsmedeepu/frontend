@@ -8,7 +8,6 @@ const Contact = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate sending
     setTimeout(() => {
       showToast('Message sent! We will get back to you soon.', 'success');
       setFormData({ name: '', email: '', message: '' });
@@ -26,7 +25,6 @@ const Contact = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-          {/* Contact Info */}
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Contact Information</h2>
             <div className="space-y-8">
@@ -74,7 +72,6 @@ const Contact = () => {
             </div>
           </div>
 
-          {/* Form */}
           <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>

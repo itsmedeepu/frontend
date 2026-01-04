@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, ShoppingBasket, Eye, EyeOff } from 'lucide-react';
@@ -23,7 +22,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
         const user = await api.login(email, password);
         onLogin(user);
-        navigate('/dashboard'); // Redirect to dashboard on success
+        navigate('/dashboard'); 
     } catch (err: any) {
         showToast(err.message || 'Login failed', 'error');
     }

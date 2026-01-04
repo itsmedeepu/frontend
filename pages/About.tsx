@@ -4,7 +4,6 @@ import { Heart, Users, Leaf, Globe } from 'lucide-react';
 const About = () => {
   return (
     <div className="bg-white dark:bg-slate-950 transition-colors">
-      {/* Hero Section */}
       <div className="relative py-20 bg-emerald-900 overflow-hidden">
         <div className="absolute inset-0 opacity-20">
             <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -21,7 +20,6 @@ const About = () => {
         </div>
       </div>
 
-      {/* Mission & Vision */}
       <div className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div>
@@ -57,7 +55,6 @@ const About = () => {
         </div>
       </div>
 
-      {/* Values Stats */}
       <div className="bg-slate-50 dark:bg-slate-900 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

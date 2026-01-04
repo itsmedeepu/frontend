@@ -60,7 +60,6 @@ const OrderManagement: React.FC<OrderManagementProps> = ({
          {filteredOrders.map(order => (
    
            <div key={order.id} className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group">
-              {/* Card Header */}
               <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
@@ -84,7 +83,6 @@ const OrderManagement: React.FC<OrderManagementProps> = ({
 
               <div className="p-5">
                 <div className="flex flex-col sm:flex-row justify-between gap-6">
-                   {/* Buyer Info */}
                    <div className="flex items-start gap-4">
                       <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 shrink-0">
                          <UserIcon className="h-5 w-5" />
@@ -97,7 +95,6 @@ const OrderManagement: React.FC<OrderManagementProps> = ({
                       </div>
                    </div>
 
-                    {/* Order Total */}
                     <div className="text-right">
                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Order Value</div>
                        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">₹{(order.totalAmount || 0).toFixed(2)}</div>
@@ -105,7 +102,6 @@ const OrderManagement: React.FC<OrderManagementProps> = ({
                     </div>
                 </div>
 
-                {/* Delivery Details Display for Farmer */}
                 {(order.status === 'Shipped' || order.status === 'Delivered') && order.delivery && (
                   <div className="mt-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30">
                     <div className="flex items-center justify-between mb-2">
@@ -150,7 +146,6 @@ const OrderManagement: React.FC<OrderManagementProps> = ({
                   </div>
                 )}
 
-                {/* Review Section */}
                 {order.status === 'Delivered' && order.review && (
                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
                       <div className="flex items-start gap-3 bg-emerald-50/50 dark:bg-emerald-900/10 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
@@ -175,7 +170,6 @@ const OrderManagement: React.FC<OrderManagementProps> = ({
                  )}
               </div>
 
-              {/* Actions Footer */}
               {(order.status === 'Pending' || order.status === 'Accepted' || order.status === 'Shipped' || order.status === 'Delivered') && (
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex gap-2 justify-end items-center flex-wrap">
                   

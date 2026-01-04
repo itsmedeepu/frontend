@@ -49,8 +49,6 @@ export const useLoading = () => {
   return context;
 };
 
-// Global singleton hook for use outside of React components (e.g. in api.ts)
-// This is a bit of a hack but works for simple event-based triggering
 export const loadingEmitter = {
     start: () => window.dispatchEvent(new CustomEvent('app-loading-start')),
     stop: () => window.dispatchEvent(new CustomEvent('app-loading-stop'))

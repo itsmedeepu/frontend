@@ -2,18 +2,15 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 
 import { Product, User } from '../types';
 import { loadingEmitter } from '../context/LoadingContext';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || ''; // Relative path for proxy
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || ''; 
 const API_URL = `${BACKEND_URL}/api/v1/agridirect`;
 
-// Helper to get tokens
 const getAccessToken = () => localStorage.getItem('accessToken');
 
-// Helper to set tokens
 const setAccessToken = (accessToken: string) => {
   localStorage.setItem('accessToken', accessToken);
 };
 
-// Helper to clear tokens
 const clearTokens = () => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('agri_user');
@@ -21,13 +18,12 @@ const clearTokens = () => {
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // Important for sending/receiving cookies
+  withCredentials: true, 
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add authorization header
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     loadingEmitter.start();
@@ -43,7 +39,6 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     loadingEmitter.stop();
@@ -53,12 +48,10 @@ apiClient.interceptors.response.use(
     loadingEmitter.stop();
     const originalRequest = error.config;
 
-    // Check if the error is 401 or 403 and not already retrying
     if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        // Attempt to refresh the token
         const refreshResponse = await axios.get(`${API_URL}/user/refreshtoken`, {
           withCredentials: true,
         });
@@ -71,15 +64,12 @@ apiClient.interceptors.response.use(
             localStorage.setItem('agri_user', JSON.stringify(refreshResponse.data.user));
           }
 
-          // Update the original request's Authorization header
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
-          // Retry the original request
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
         console.error('Token refresh failed', refreshError);
-        // If refresh fails, logout
         clearTokens();
         window.location.href = '/#/login';
       }
@@ -114,7 +104,7 @@ export const api = {
     try {
       const queryParams: any = {};
       if (params?.available) queryParams.available = params.available;
-      else queryParams.available = 'true'; // Default to true if not specified
+      else queryParams.available = 'true'; 
 
       if (params?.category && params.category !== 'All') queryParams.category = params.category;
       if (params?.search) queryParams.search = params.search;
@@ -360,4 +350,3 @@ export const api = {
     }
   },
 };
-

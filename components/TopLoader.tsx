@@ -23,7 +23,7 @@ const TopLoader: React.FC = () => {
       }, 100);
     } else {
       setProgress(100);
-      // Wait for the transition to 100% to finish, then fade out
+      
       const fadeTimeout = setTimeout(() => {
         setOpacity(0);
       }, 400);

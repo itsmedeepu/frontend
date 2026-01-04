@@ -31,7 +31,14 @@ const CartModal = () => {
       clearCart();
       navigate('/dashboard');
     } catch (error: any) {
-      showToast(`Checkout failed: ${error.message}`, 'error');
+      if (error.message && error.message.toLowerCase().includes("address")) {
+        showToast(error.message, 'error');
+        // Close cart and navigate to profile
+        toggleCart(); 
+        navigate('/dashboard?tab=profile');
+      } else {
+        showToast(`Checkout failed: ${error.message}`, 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -89,7 +96,6 @@ const CartModal = () => {
                       <div className="flex items-center gap-2">
                         <button 
                           onClick={() => {
-                            console.log('CartModal: Decrease clicked', item.id, item.quantity - 1);
                             updateQuantity(item.id, item.quantity - 1);
                           }}
                           className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
@@ -100,7 +106,6 @@ const CartModal = () => {
                         <button 
                           onClick={() => {
                             if (item.quantity >= item.stock) return;
-                            console.log('CartModal: Increase clicked', item.id, item.quantity + 1);
                             updateQuantity(item.id, item.quantity + 1);
                           }}
                           disabled={item.quantity >= item.stock}
@@ -130,7 +135,6 @@ const CartModal = () => {
 
         {items.length > 0 && (
           <div className="p-6 border-t border-gray-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 space-y-4">
-            {/* Payment Method Selection */}
             <div>
               <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Payment Method</h3>
               <div className="space-y-2">

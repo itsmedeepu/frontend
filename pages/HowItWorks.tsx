@@ -50,7 +50,6 @@ const HowItWorks = () => {
           </p>
         </div>
 
-        {/* Desktop Flow Chart */}
         <div className="hidden md:flex justify-between items-start relative mb-20">
           <div className="absolute top-12 left-0 w-full h-1 bg-slate-200 dark:bg-slate-800 -z-10"></div>
           {steps.map((step, index) => (
@@ -64,7 +63,6 @@ const HowItWorks = () => {
           ))}
         </div>
 
-        {/* Mobile Vertical Flow */}
         <div className="md:hidden space-y-12 relative">
           <div className="absolute left-8 top-8 bottom-8 w-1 bg-slate-200 dark:bg-slate-800 -z-10"></div>
           {steps.map((step, index) => (
@@ -80,7 +78,6 @@ const HowItWorks = () => {
           ))}
         </div>
 
-        {/* FAQ Preview */}
         <div className="mt-24 bg-white dark:bg-slate-900 rounded-3xl p-8 md:p-12 shadow-sm border border-slate-200 dark:border-slate-800">
            <div className="text-center mb-10">
              <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Frequently Asked Questions</h2>
@@ -101,7 +98,7 @@ const HowItWorks = () => {
         </div>
       </div>
     </div>
-  );
+    );
 };
 
 export default HowItWorks;

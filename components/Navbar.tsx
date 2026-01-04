@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBasket, User as UserIcon, Power, Menu, Tractor, ShoppingBag, X, Sun, Moon, Bell, MessageCircle } from 'lucide-react';
@@ -31,7 +30,6 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
         }
       };
       fetchOrdersForCount();
-      // Polling for new orders every 30 seconds
       const interval = setInterval(fetchOrdersForCount, 30000);
       return () => clearInterval(interval);
     }

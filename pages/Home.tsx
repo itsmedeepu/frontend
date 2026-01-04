@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, ShoppingCart, Leaf, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -22,12 +21,10 @@ const Home: React.FC<HomeProps> = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   
-  // Price Comparison State
   const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
   const [comparisonProducts, setComparisonProducts] = useState<Product[]>([]);
   const [comparisonProductName, setComparisonProductName] = useState('');
 
-  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -35,21 +32,20 @@ const Home: React.FC<HomeProps> = ({ user }) => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Reviews State
   const [reviews, setReviews] = useState([]);
   const sliderRef = React.useRef<HTMLDivElement>(null);
   const [activeSlide, setActiveSlide] = useState(0);
 
   const scrollLeft = () => {
     if (sliderRef.current) {
-      const cardWidth = 350 + 24; // width + gap
+      const cardWidth = 350 + 24; 
       sliderRef.current.scrollBy({ left: -cardWidth, behavior: 'smooth' });
     }
   };
 
   const scrollRight = () => {
     if (sliderRef.current) {
-      const cardWidth = 350 + 24; // width + gap
+      const cardWidth = 350 + 24;
       sliderRef.current.scrollBy({ left: cardWidth, behavior: 'smooth' });
     }
   };
@@ -92,7 +88,6 @@ const Home: React.FC<HomeProps> = ({ user }) => {
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen transition-colors">
-      {/* Hero Section */}
       <div className="bg-emerald-700 text-white py-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6">Fresh from the Earth to Your Table</h1>
@@ -112,11 +107,7 @@ const Home: React.FC<HomeProps> = ({ user }) => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        
-
-
         <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
           <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Fresh Harvest</h2>
           <div className="flex flex-wrap gap-4 items-center overflow-x-auto pb-2 md:pb-0" id="home-categories">
@@ -135,8 +126,6 @@ const Home: React.FC<HomeProps> = ({ user }) => {
                 </button>
               ))}
             </div>
-
-
           </div>
         </div>
 
@@ -186,7 +175,7 @@ const Home: React.FC<HomeProps> = ({ user }) => {
                       {product.farmerRating !== undefined && product.farmerRating > 0 && (
                         <div className="flex items-center gap-0.5 ml-1 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900/50">
                           <span className="text-amber-500 text-[10px]">★</span>
-                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-500">{product.farmerRating.toFixed(1)}</span>
+                          <span className="text-10px font-bold text-amber-600 dark:text-amber-500">{product.farmerRating.toFixed(1)}</span>
                         </div>
                       )}
                     </div>
@@ -195,7 +184,6 @@ const Home: React.FC<HomeProps> = ({ user }) => {
                         if (!user) {
                           navigate('/login');
                         } else {
-                          // Check for similar products (same name and category) from other farmers
                           const duplicates = products.filter(p => 
                             p.name.toLowerCase() === product.name.toLowerCase() && 
                             p.category === product.category
@@ -221,7 +209,6 @@ const Home: React.FC<HomeProps> = ({ user }) => {
           </div>
         )}
         
-        {/* Price Comparison Modal */}
         <PriceComparisonModal
           isOpen={isComparisonModalOpen}
           onClose={() => setIsComparisonModalOpen(false)}
@@ -240,9 +227,6 @@ const Home: React.FC<HomeProps> = ({ user }) => {
           </div>
         )}
 
-
-
-        {/* Recent Reviews Slider */}
         <div className="mt-24 mb-20 animate-in slide-in-from-bottom-8 duration-500 delay-150 group/slider">
           <div className="flex items-center gap-3 mb-8 justify-between">
             <div className="flex items-center gap-2">
@@ -310,11 +294,9 @@ const Home: React.FC<HomeProps> = ({ user }) => {
                 <div className="w-full text-center py-10 text-slate-400 italic">No reviews yet. Be the first to share your experience!</div>
               )}
             </div>
-            {/* Fade effect for scroll hint */}
             <div className="absolute right-0 top-0 bottom-8 linear-wipe pointer-events-none w-24 bg-gradient-to-l from-slate-50 dark:from-slate-950 to-transparent lg:hidden"></div>
           </div>
           
-          {/* Dots Pagination */}
           {reviews.length > 0 && (
             <div className="flex justify-center gap-2 mt-4">
               {reviews.map((_, idx) => (

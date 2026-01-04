@@ -59,7 +59,6 @@ const UserOrders: React.FC<UserOrdersProps> = ({ orders, onCancelOrder, onOpenRe
       <div className="space-y-6">
         {filteredOrders.map(order => (
           <div key={order.id} className="border border-slate-200 dark:border-slate-700/50 rounded-2xl overflow-hidden bg-slate-50/30 dark:bg-slate-800/20 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
-             {/* Order Header */}
              <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-emerald-600 dark:text-emerald-500 shadow-sm">
@@ -87,7 +86,6 @@ const UserOrders: React.FC<UserOrdersProps> = ({ orders, onCancelOrder, onOpenRe
                </div>
              </div>
 
-             {/* Order Items */}
              <div className="p-4 sm:p-6">
                <div className="space-y-4 mb-6">
                  {order.items.map((item: any, idx: number) => (
@@ -108,7 +106,6 @@ const UserOrders: React.FC<UserOrdersProps> = ({ orders, onCancelOrder, onOpenRe
                  ))}
                </div>
 
-               {/* Tracking Info if available */}
                {(order.status === 'Shipped' || order.status === 'Delivered') && order.delivery && (
                   <div className="mb-6 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30">
                      <div className="flex items-center gap-2 mb-3">
@@ -132,7 +129,6 @@ const UserOrders: React.FC<UserOrdersProps> = ({ orders, onCancelOrder, onOpenRe
                   </div>
                )}
 
-               {/* Actions */}
                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                   {order.status === 'Pending' && (
                      <button 

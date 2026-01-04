@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getImageUrl } from '../utils/imageHelper';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -43,7 +42,6 @@ const ProductDetails: React.FC = () => {
       navigate('/login');
       return;
     }
-    const user = JSON.parse(userStr);
     
     await api.createOrder([{
       product: product.id,
@@ -65,7 +63,6 @@ const ProductDetails: React.FC = () => {
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
-          {/* Image Gallery */}
           <div className="space-y-4">
             <div className="aspect-square rounded-2xl overflow-hidden shadow-inner">
               <img src={getImageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" />
@@ -79,7 +76,6 @@ const ProductDetails: React.FC = () => {
             </div>
           </div>
 
-          {/* Details Content */}
           <div className="flex flex-col">
             <div className="mb-6">
               <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm uppercase tracking-widest mb-2 transition-colors">

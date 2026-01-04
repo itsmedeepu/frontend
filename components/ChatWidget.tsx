@@ -27,7 +27,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
   
-  // Chat State
   const [currentMessage, setCurrentMessage] = useState("");
   const [messageList, setMessageList] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -36,11 +35,9 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<any>(null);
 
-  // Helper Functions
   const getOtherPartyId = (order: Order) => {
     if (role === 'customer') {
        const farmer = order.farmer;
-       // Handle populated vs id-only
        return typeof farmer === 'object' && farmer ? (farmer as any)._id || (farmer as any).id : farmer;
     } else {
         const user = order.user;
@@ -81,7 +78,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
 
   const playNotificationSound = () => {
     try {
-        // Using a reliable public URL for a notification beep
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         audio.play().catch(e => {});
     } catch (e) {
@@ -95,13 +91,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
     setIsOrderDetailsOpen(false);
     setOtherUserTyping(false);
     
-    // Check if the other party is online
     const partnerId = getOtherPartyId(order);
     if(partnerId) {
         socket.emit("check_online", partnerId);
     }
     
-    // Optimistically set false (will update on response)
     setIsOnline(false); 
   };
 
@@ -110,7 +104,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
       else if (view === 'list') setView('home');
   };
 
-  // Register User and Listen for Events
   useEffect(() => {
     if (userId) {
         socket.emit("register_user", userId);
@@ -133,7 +126,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
     socket.on("user_online", handleUserOnline);
     socket.on("user_offline", handleUserOffline);
     
-    // Listen for global open event (from Navbar)
     const handleOpenChat = () => setIsOpen(true);
     window.addEventListener('openChatWidget', handleOpenChat);
     
@@ -154,7 +146,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
     };
   }, [userId, selectedOrder]);
 
-  // Load orders on mount/open
   useEffect(() => {
     if (isOpen) {
       const fetchOrders = async () => {
@@ -171,7 +162,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
     }
   }, [isOpen, role]);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messageList, view]);
@@ -180,14 +170,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Chat Room Logic
   useEffect(() => {
     if (view === 'chat' && selectedOrder) {
       const orderId = selectedOrder.id || selectedOrder._id;
-      // Join the room for this order
       socket.emit("join_room", orderId);
 
-      // Load History
       const fetchHistory = async () => {
         try {
           const res = await api.getChatHistory(orderId);
@@ -200,7 +187,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
       
       const handleReceiveMessage = (data: Message) => {
         setMessageList((list) => [...list, data]);
-        // Play sound if the message author is NOT me
         if (data.authorId !== userId) {
             playNotificationSound();
         }
@@ -267,13 +253,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
         timestamp: new Date().toISOString()
       };
 
-      // Optimistic update
       setMessageList((list) => [...list, messageData]);
       setCurrentMessage("");
 
       await socket.emit("send_message", messageData);
 
-      // Stop typing immediately when sending
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       setIsTyping(false);
       socket.emit("stop_typing", orderId);
@@ -330,7 +314,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm h-[500px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 fade-in zoom-in-95">
-      {/* Header */}
       <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 flex justify-between items-center shrink-0 shadow-sm z-10">
         <div className="flex items-center gap-2 overflow-hidden">
           {view !== 'home' && (
@@ -358,7 +341,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
         </button>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950/50 custom-scrollbar relative flex flex-col">
         {view === 'home' && (
             <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-6 text-center">
@@ -477,7 +459,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ userId, role }) => {
         )}
       </div>
 
-      {/* Input Area (Only in Chat View) */}
       {view === 'chat' && (
         <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0 z-10">
           <form 

@@ -1,6 +1,14 @@
 
 export type Role = 'customer' | 'farmer';
 
+export interface Address {
+  doorNo?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -11,7 +19,7 @@ export interface User {
   location?: string;
   avatar?: string;
   phone?: string;
-  address?: string;
+  address?: string | Address;
 }
 
 export interface Product {
@@ -34,6 +42,7 @@ export interface OrderItem {
   price: number;
   quantity: number;
   unit: string;
+  unitPrice?: number;
 }
 
 export interface Delivery {
@@ -58,12 +67,12 @@ export interface Delivery {
 export type OrderStatus = 'Pending' | 'Accepted' | 'Rejected' | 'Shipped' | 'Delivered' | 'Cancelled';
 
 export interface Order {
-  _id: string; // Add _id for MongoDB compatibility
+  _id: string; 
   id: string;
   customerId: string;
   customerName: string;
   farmerId: string;
-  items: any[]; // Relaxed for now as we use populate
+  items: any[]; 
   total: number;
   totalAmount?: number;
   status: OrderStatus;
@@ -79,7 +88,7 @@ export interface Order {
     name: string;
     email: string;
     phone?: string;
-    address?: string;
+    address?: string | Address;
   };
   farmer?: {
     _id: string;
@@ -90,6 +99,7 @@ export interface Order {
       farmName: string;
     };
   };
+  shippingAddress?: Address;
 }
 
 export interface Transaction {
