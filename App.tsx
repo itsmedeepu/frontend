@@ -10,6 +10,7 @@ import { useToast } from './context/ToastContext';
 import Toast from './components/Toast';
 import Loader from './components/Loader';
 import TopLoader from './components/TopLoader';
+import WelcomePopup from './components/WelcomePopup';
 
 const Home = lazy(() => import('./pages/Home'));
 const Farms = lazy(() => import('./pages/Farms'));
@@ -42,6 +43,7 @@ const SuspenseLoader: React.FC = () => {
 const AppContent: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -49,8 +51,17 @@ const AppContent: React.FC = () => {
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+
+    const welcomeShown = localStorage.getItem('agri_welcome_shown');
+    if (!welcomeShown) {
+      setShowWelcome(true);
+      localStorage.setItem('agri_welcome_shown', 'true');
+    }
+    
     setLoading(false);
   }, []);
+
+  const closeWelcome = () => setShowWelcome(false);
 
   const handleLogin = (userData: User, message: string = 'Login Successful!') => {
     setUser(userData);
@@ -85,6 +96,7 @@ const AppContent: React.FC = () => {
         <TopLoader />
         <CartModal />
         <Toast />
+        {showWelcome && <WelcomePopup onClose={closeWelcome} />}
         <div className="flex flex-col min-h-screen">
           <Navbar user={user} onLogout={handleLogout} />
           
