@@ -133,7 +133,7 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
                     className="w-full pl-10 pr-4 py-3.5 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-900 dark:text-slate-100 font-medium placeholder-slate-400 dark:placeholder-slate-500"
                     placeholder="john@example.com"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({...formData, email: e.target.value.toLowerCase()})}
                   />
                 </div>
               </div>

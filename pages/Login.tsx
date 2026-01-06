@@ -82,7 +82,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       className="appearance-none block w-full pl-10 pr-3 py-3.5 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-slate-900 dark:text-slate-100 font-medium"
                       placeholder="name@example.com"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => setEmail(e.target.value.toLowerCase())}
                     />
                   </div>
                 </div>
@@ -162,7 +162,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
                 {/* Farmer Demo */}
                 <button
-                  onClick={() => fillDemoCredentials('testfarmer@gmail.com', 'Farmer@12345', 'farmer')}
+                  onClick={() => fillDemoCredentials('farmer@gmail.com', 'Test@12345', 'farmer')}
                   className="w-full text-left p-4 bg-white dark:bg-slate-800 rounded-2xl border border-emerald-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-500 transition-all group"
                 >
                   <div className="flex items-center gap-3 mb-2">
@@ -172,8 +172,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     <span className="font-bold text-slate-900 dark:text-slate-100">Farmer Account</span>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400 truncate">Email: testfarmer@gmail.com</p>
-                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400">Pass: Farmer@12345</p>
+                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400 truncate">Email: farmer@gmail.com</p>
+                    <p className="text-xs font-mono text-slate-500 dark:text-slate-400">Pass: Test@12345</p>
                   </div>
                   <div className="mt-3 text-xs font-bold text-teal-600 opacity-0 group-hover:opacity-100 transition-opacity">
                     Click to fill credentials →
