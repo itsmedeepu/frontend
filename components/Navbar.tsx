@@ -53,15 +53,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
             {(!user || user.role?.toLowerCase() !== 'farmer') && (
               <div className="hidden md:flex items-center gap-6">
                 <Link to="/" className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-500 font-medium transition-colors">Marketplace</Link>
-                <a 
-                  href="https://drive.google.com/file/d/1Ok0qaoV-Gbswm9LAzUHiH3LuukwlTC8E/view?usp=sharing" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-500 font-medium transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Video Explanation
-                </a>
+
               </div>
             )}
           </div>

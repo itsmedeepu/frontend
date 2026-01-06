@@ -31,12 +31,24 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
     return null;
   };
 
+  const validatePhone = (phone: string) => {
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) return "Phone number must be exactly 10 digits";
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const passwordError = validatePassword(formData.password);
     if (passwordError) {
       showToast(passwordError, 'error');
+      return;
+    }
+
+    const phoneError = validatePhone(formData.phone);
+    if (phoneError) {
+      showToast(phoneError, 'error');
       return;
     }
 
@@ -149,10 +161,11 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
                   <Phone className="absolute left-3 top-3.5 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-emerald-600 transition-colors" />
                   <input
                     type="tel"
+                    required
                     className="w-full pl-10 pr-4 py-3.5 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-900 dark:text-slate-100 font-medium placeholder-slate-400 dark:placeholder-slate-500"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="10-digit phone number"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})}
                   />
                 </div>
               </div>
