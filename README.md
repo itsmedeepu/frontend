@@ -18,22 +18,11 @@ The Dockerfile does the following:
 
 ---
 
-## 🐳 Dockerfile
-
-```dockerfile
-FROM node
-WORKDIR /agridirect/frontend/
-COPY package*.json ./
-EXPOSE 4000
-RUN npm install
-COPY . .
-CMD ["npm","run","dev"] ```
-
----
-
 ## 🚀 Build and Run Instructions
 Build the Docker Image
 ``` docker build -t agridirect-frontend .```
+
+---
 
 ## 🏃 Run the Container
 Once the image is built, you can start the container. This maps port 4000 of the container to port 4000 on your local machine.
