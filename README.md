@@ -29,6 +29,8 @@ RUN npm install
 COPY . .
 CMD ["npm","run","dev"] ```
 
+---
+
 ## 🚀 Build and Run Instructions
 Build the Docker Image
 ``` docker build -t agridirect-frontend .```
